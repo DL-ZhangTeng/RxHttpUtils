@@ -5,8 +5,11 @@ import android.util.Log;
 
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
+import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
+import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
+import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.SSLUtils;
 
 import java.io.File;
@@ -15,6 +18,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
+import okhttp3.HttpUrl;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 
@@ -110,6 +114,17 @@ public class GlobalHttpUtils {
                     .addInterceptor(new AddCookieInterceptor())
                     .addNetworkInterceptor(new SaveCookieInterceptor());
         }
+        return this;
+    }
+
+    public GlobalHttpUtils setSign(String appKey) {
+        OkHttpClient.getInstance().getBuilder().addInterceptor(new SignInterceptor(appKey));
+        return this;
+    }
+
+    public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl) {
+        OkHttpClient.getInstance().getBuilder().addInterceptor(new EncryptionInterceptor(publicKeyUrl));
+        OkHttpClient.getInstance().getBuilder().addNetworkInterceptor(new DecryptionInterceptor());
         return this;
     }
 

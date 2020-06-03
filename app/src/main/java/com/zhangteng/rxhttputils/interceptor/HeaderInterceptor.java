@@ -2,7 +2,6 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.TreeMap;
 
 import okhttp3.Interceptor;
 import okhttp3.Request;
@@ -13,7 +12,7 @@ import okhttp3.Response;
  */
 public class HeaderInterceptor implements Interceptor {
 
-    private Map<String, Object> headerMaps = new TreeMap<>();
+    private Map<String, Object> headerMaps;
 
     public HeaderInterceptor(Map<String, Object> headerMaps) {
         this.headerMaps = headerMaps;
