@@ -11,6 +11,10 @@
                     //.setHeaders(headerMaps)
                     //全局持久话cookie,保存本地每次都会携带在header中
                     .setCookie(false)
+                    //全局加解密(AES+RSA)
+                    //公钥请求路径HttpUrl.get(BuildConfig.HOST + "/getPublicKey")
+                    //公钥响应结果{"result": {"publicKey": ""},"message": "查询成功!","status": 100}
+                    .setEnAndDecryption(HttpUrl.get(BuildConfig.HOST + "/getPublicKey"))
                     //全局ssl证书认证
                     //信任所有证书,不安全有风险
                     .setSslSocketFactory()

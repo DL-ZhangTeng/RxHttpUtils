@@ -118,13 +118,13 @@ public class GlobalHttpUtils {
     }
 
     public GlobalHttpUtils setSign(String appKey) {
-        OkHttpClient.getInstance().getBuilder().addInterceptor(new SignInterceptor(appKey));
+        getOkHttpClientBuilder().addInterceptor(new SignInterceptor(appKey));
         return this;
     }
 
     public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl) {
-        OkHttpClient.getInstance().getBuilder().addInterceptor(new EncryptionInterceptor(publicKeyUrl));
-        OkHttpClient.getInstance().getBuilder().addNetworkInterceptor(new DecryptionInterceptor());
+        getOkHttpClientBuilder().addInterceptor(new EncryptionInterceptor(publicKeyUrl));
+        getOkHttpClientBuilder().addNetworkInterceptor(new DecryptionInterceptor());
         return this;
     }
 
