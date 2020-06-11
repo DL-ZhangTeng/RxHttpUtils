@@ -1,2 +1,2 @@
-include ':RxhttpUtils'
+include ':rxhttputils'
 include ':app'
