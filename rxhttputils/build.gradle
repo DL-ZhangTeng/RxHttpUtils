@@ -46,7 +46,7 @@ def artifactName = 'RxHttpUtils'//项目名
 def description = '网络请求库'//添加项目描述
 
 group = "com.zhangteng.rxhttputils"//发布aar前缀根节点
-version = "1.0.1"//发布aar的库版本
+version = "1.0.2"//发布aar的库版本
 
 install {
     repositories.mavenInstaller {
