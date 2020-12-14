@@ -15,6 +15,7 @@ import com.zhangteng.rxhttputils.utils.SPUtils;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import okhttp3.FormBody;
 import okhttp3.Headers;
@@ -50,7 +51,7 @@ public class EncryptionInterceptor implements Interceptor {
         if (headers.names().contains(SECRET) && "true".equals(headers.get(SECRET))) {
             Request secretRequest = buildRequest(request);
             if (secretRequest == null) {
-                return getErrorSecretResponse();
+                return getErrorSecretResponse(request);
             }
             Response secretResponse = chain.proceed(secretRequest);
             ResponseBody secretResponseBody = secretResponse.body();
@@ -73,7 +74,7 @@ public class EncryptionInterceptor implements Interceptor {
                 DiskLruCacheUtils.flush();
                 secretRequest = buildRequest(request);
                 if (secretRequest == null) {
-                    return getErrorSecretResponse();
+                    return getErrorSecretResponse(request);
                 }
                 secretResponse = chain.proceed(secretRequest);
             } else {
@@ -94,11 +95,15 @@ public class EncryptionInterceptor implements Interceptor {
     private Request buildRequest(Request request) throws IOException {
         if (TextUtils.isEmpty((CharSequence) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SECRET, ""))) {
             Response secretResponse = OkHttpClient.getInstance().getClient().newCall(new Request.Builder().url(publicKeyUrl).build()).execute();
-            String secretResponseString = secretResponse.body().string();
             if (secretResponse.code() == 200) {
-                JsonObject jsonObject = new JsonParser().parse(secretResponseString).getAsJsonObject();
-                JsonElement jsonElement = jsonObject.get("result").getAsJsonObject().get("publicKey");
-                SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SECRET, jsonElement.getAsString());
+                try {
+                    String secretResponseString = Objects.requireNonNull(secretResponse.body()).string();
+                    JsonObject jsonObject = new JsonParser().parse(secretResponseString).getAsJsonObject();
+                    JsonElement jsonElement = jsonObject.get("result").getAsJsonObject().get("publicKey");
+                    SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SECRET, jsonElement.getAsString());
+                } catch (NullPointerException exception) {
+                    return null;
+                }
             } else {
                 return null;
             }
@@ -166,8 +171,9 @@ public class EncryptionInterceptor implements Interceptor {
     /**
      * 获取加密失败响应
      */
-    private Response getErrorSecretResponse() {
+    private Response getErrorSecretResponse(okhttp3.Request request) {
         Response.Builder failureResponse = new Response.Builder();
+        failureResponse.request(request);
         failureResponse.body(ResponseBody.create(MediaType.parse("application/json;charset=UTF-8"), String.format("{\"message\": \"移动端加密失败\",\"status\": %s}", EncryptionInterceptor.SECRET_ERROR)));
         return failureResponse.build();
     }

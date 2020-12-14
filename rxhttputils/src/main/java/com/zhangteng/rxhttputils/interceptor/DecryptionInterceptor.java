@@ -40,9 +40,8 @@ public class DecryptionInterceptor implements Interceptor {
                     responseBuilder.body(ResponseBody.create(mediaType, rawResponseStr));
                     return responseBuilder.build();
                 } catch (Exception e) {
-                    Response.Builder failureResponse = new Response.Builder();
-                    failureResponse.body(ResponseBody.create(MediaType.parse("application/json;charset=UTF-8"), String.format("{\"message\": \"移动端解密失败%s\",\"status\": %s}", e.getMessage(), EncryptionInterceptor.SECRET_ERROR)));
-                    return failureResponse.build();
+                    responseBuilder.body(ResponseBody.create(MediaType.parse("application/json;charset=UTF-8"), String.format("{\"message\": \"移动端解密失败%s\",\"status\": %s}", e.getMessage(), EncryptionInterceptor.SECRET_ERROR)));
+                    return responseBuilder.build();
                 }
             }
         }
