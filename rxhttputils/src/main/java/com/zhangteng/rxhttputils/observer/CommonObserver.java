@@ -45,7 +45,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnError(String errorMsg) {
-        if (mProgressDialog != null) {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
         if (!isHideToast()) {
@@ -57,7 +57,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnCompleted() {
-        if (mProgressDialog != null) {
+        if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
     }

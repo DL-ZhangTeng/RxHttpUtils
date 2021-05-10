@@ -50,19 +50,19 @@ public class ApiException extends Exception {
             return ex;
         } else if (e instanceof SocketTimeoutException) {
             ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接超时，请检查您的网络状态，稍后重试！";
+            ex.message = "网络连接超时，请检查您的网络状态后重试！";
             return ex;
         } else if (e instanceof ConnectException) {
             ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接异常，请检查您的网络状态，稍后重试！";
+            ex.message = "网络连接异常，请检查您的网络状态后重试！";
             return ex;
         } else if (e instanceof ConnectTimeoutException) {
             ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接超时，请检查您的网络状态，稍后重试！";
+            ex.message = "网络连接超时，请检查您的网络状态后重试！";
             return ex;
         } else if (e instanceof UnknownHostException) {
             ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接异常，请检查您的网络状态，稍后重试！";
+            ex.message = "网络连接异常，请检查您的网络状态后重试！";
             return ex;
         } else if (e instanceof NullPointerException) {
             ex = new ApiException(e, ERROR.NULL_POINTER_EXCEPTION);

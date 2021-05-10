@@ -1,7 +1,10 @@
 package com.zhangteng.rxhttputils.http;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.util.LruCache;
 
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
@@ -10,10 +13,12 @@ import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
+import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
 import com.zhangteng.rxhttputils.utils.SSLUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Proxy;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +32,10 @@ import retrofit2.Retrofit;
  */
 public class GlobalHttpUtils {
     private static GlobalHttpUtils instance;
+    private static final int MAX_SIZE = 150;
+    private static final float MAX_SIZE_MULTIPLIER = 0.002f;
+    private static int cache_size = MAX_SIZE;
+    private LruCache<String, Object> mRetrofitServiceCache;
 
     private GlobalHttpUtils() {
     }
@@ -64,7 +73,27 @@ public class GlobalHttpUtils {
     }
 
     public <K> K createService(Class<K> cls) {
-        return getRetorfit().create(cls);
+        if (mRetrofitServiceCache == null) {
+            try {
+                ActivityManager activityManager = (ActivityManager) HttpUtils.getInstance().getContext().getSystemService(Context.ACTIVITY_SERVICE);
+                int targetMemoryCacheSize = (int) (activityManager.getMemoryClass() * MAX_SIZE_MULTIPLIER * 1024);
+                if (targetMemoryCacheSize < MAX_SIZE) {
+                    cache_size = targetMemoryCacheSize;
+                }
+            }catch (ExceptionInInitializerError exception){
+                cache_size = MAX_SIZE;
+            }
+            mRetrofitServiceCache = new LruCache<>(cache_size);
+        }
+        K retrofitService = (K) mRetrofitServiceCache.get(cls.getCanonicalName());
+        if (retrofitService == null) {
+            retrofitService = (K) Proxy.newProxyInstance(
+                    cls.getClassLoader(),
+                    new Class[]{cls},
+                    new RetrofitServiceProxyHandler(getRetorfit(), cls));
+            mRetrofitServiceCache.put(cls.getCanonicalName(), retrofitService);
+        }
+        return retrofitService;
     }
 
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps) {
