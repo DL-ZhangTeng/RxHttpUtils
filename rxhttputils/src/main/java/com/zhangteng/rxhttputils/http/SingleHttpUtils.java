@@ -4,10 +4,14 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
+import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
+import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
+import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.SSLUtils;
 
 import java.io.File;
@@ -19,6 +23,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.CallAdapter;
@@ -37,9 +42,14 @@ public class SingleHttpUtils {
     private boolean isShowLog = true;
     private boolean cache = false;
     private boolean saveCookie = true;
+    private boolean sign = false;
+    private boolean encrypt = false;
 
     private String cachePath;
+    private String appKey;
     private long cacheMaxSize;
+    private HttpUrl publicKeyUrl;
+    private String publicKey;
 
     private long readTimeout;
     private long writeTimeout;
@@ -47,8 +57,8 @@ public class SingleHttpUtils {
 
     private SSLUtils.SSLParams sslParams;
 
-    private List<Converter.Factory> converterFactories = new ArrayList<>();
-    private List<CallAdapter.Factory> adapterFactories = new ArrayList<>();
+    private final List<Converter.Factory> converterFactories = new ArrayList<>();
+    private final List<CallAdapter.Factory> adapterFactories = new ArrayList<>();
 
     public static SingleHttpUtils getInstance() {
         instance = new SingleHttpUtils();
@@ -80,43 +90,63 @@ public class SingleHttpUtils {
         return this;
     }
 
-    public SingleHttpUtils addHeaders(Map<String, Object> headerMaps) {
+    public SingleHttpUtils setHeaders(Map<String, Object> headerMaps) {
         this.headerMaps = headerMaps;
         return this;
     }
 
-    public SingleHttpUtils log(boolean isShowLog) {
+    public SingleHttpUtils setLog(boolean isShowLog) {
         this.isShowLog = isShowLog;
         return this;
     }
 
-    public SingleHttpUtils cache(boolean cache) {
+    public SingleHttpUtils setCache(boolean cache) {
         this.cache = cache;
         return this;
     }
 
-    public SingleHttpUtils saveCookie(boolean saveCookie) {
-        this.saveCookie = saveCookie;
-        return this;
-    }
-
-    public SingleHttpUtils cachePath(String cachePath, long maxSize) {
+    public SingleHttpUtils setCache(String cachePath, long maxSize) {
         this.cachePath = cachePath;
         this.cacheMaxSize = maxSize;
         return this;
     }
 
-    public SingleHttpUtils readTimeout(long readTimeout) {
+    public SingleHttpUtils setCookie(boolean saveCookie) {
+        this.saveCookie = saveCookie;
+        return this;
+    }
+
+    /**
+     * @param appKey 验签时前后端匹配的appKey，前后端一致即可
+     */
+    public SingleHttpUtils setSign(String appKey) {
+        this.sign = true;
+        this.appKey = appKey;
+        return this;
+    }
+
+    /**
+     * @param publicKeyUrl rsa公钥失效后重新请求秘钥的接口
+     * @param publicKey    rsa公钥
+     */
+    public SingleHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl, String publicKey) {
+        this.encrypt = true;
+        this.publicKey = publicKey;
+        this.publicKeyUrl = publicKeyUrl;
+        return this;
+    }
+
+    public SingleHttpUtils setReadTimeOut(long readTimeout) {
         this.readTimeout = readTimeout;
         return this;
     }
 
-    public SingleHttpUtils writeTimeout(long writeTimeout) {
+    public SingleHttpUtils setWriteTimeOut(long writeTimeout) {
         this.writeTimeout = writeTimeout;
         return this;
     }
 
-    public SingleHttpUtils connectTimeout(long connectTimeout) {
+    public SingleHttpUtils setConnectionTimeOut(long connectTimeout) {
         this.connectTimeout = connectTimeout;
         return this;
     }
@@ -126,7 +156,7 @@ public class SingleHttpUtils {
      *
      * @return
      */
-    public SingleHttpUtils sslSocketFactory() {
+    public SingleHttpUtils setSslSocketFactory() {
         sslParams = SSLUtils.getSslSocketFactory();
         return this;
     }
@@ -137,7 +167,7 @@ public class SingleHttpUtils {
      * @param certificates
      * @return
      */
-    public SingleHttpUtils sslSocketFactory(InputStream... certificates) {
+    public SingleHttpUtils setSslSocketFactory(InputStream... certificates) {
         sslParams = SSLUtils.getSslSocketFactory(certificates);
         return this;
     }
@@ -150,7 +180,7 @@ public class SingleHttpUtils {
      * @param certificates
      * @return
      */
-    public SingleHttpUtils sslSocketFactory(InputStream bksFile, String password, InputStream... certificates) {
+    public SingleHttpUtils setSslSocketFactory(InputStream bksFile, String password, InputStream... certificates) {
         sslParams = SSLUtils.getSslSocketFactory(bksFile, password, certificates);
         return this;
     }
@@ -173,7 +203,7 @@ public class SingleHttpUtils {
      *
      * @return
      */
-    public Retrofit.Builder getSingleRetrofitBuilder() {
+    private Retrofit.Builder getSingleRetrofitBuilder() {
 
         Retrofit.Builder singleRetrofitBuilder = new Retrofit.Builder();
 
@@ -226,7 +256,9 @@ public class SingleHttpUtils {
         singleOkHttpBuilder.retryOnConnectionFailure(true);
 
         singleOkHttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
-
+        if (sign) {
+            singleOkHttpBuilder.addInterceptor(new SignInterceptor(appKey));
+        }
         if (cache) {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
             Cache cache;
@@ -241,12 +273,7 @@ public class SingleHttpUtils {
                     .cache(cache);
         }
         if (isShowLog) {
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-                @Override
-                public void log(String message) {
-                    Log.e("SingleHttpUtils", message);
-                }
-            });
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.e("SingleHttpUtils", message));
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             singleOkHttpBuilder.addInterceptor(loggingInterceptor);
         }
@@ -256,7 +283,12 @@ public class SingleHttpUtils {
                     .addInterceptor(new AddCookieInterceptor())
                     .addInterceptor(new SaveCookieInterceptor());
         }
-
+        if (encrypt) {
+            EncryptConfig.publicKey = publicKey;
+            EncryptConfig.publicKeyUrl = publicKeyUrl;
+            singleOkHttpBuilder.addInterceptor(new EncryptionInterceptor());
+            singleOkHttpBuilder.addNetworkInterceptor(new DecryptionInterceptor());
+        }
         singleOkHttpBuilder.readTimeout(readTimeout > 0 ? readTimeout : 10, TimeUnit.SECONDS);
 
         singleOkHttpBuilder.writeTimeout(writeTimeout > 0 ? writeTimeout : 10, TimeUnit.SECONDS);

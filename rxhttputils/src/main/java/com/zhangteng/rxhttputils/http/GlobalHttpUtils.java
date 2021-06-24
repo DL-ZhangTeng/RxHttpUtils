@@ -6,6 +6,7 @@ import android.os.Environment;
 import android.util.Log;
 import android.util.LruCache;
 
+import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
 import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
@@ -51,49 +52,9 @@ public class GlobalHttpUtils {
         return instance;
     }
 
-    public okhttp3.OkHttpClient.Builder getOkHttpClientBuilder() {
-        return OkHttpClient.getInstance().getBuilder();
-    }
-
-    public okhttp3.OkHttpClient getOkHttpClient() {
-        return OkHttpClient.getInstance().getClient();
-    }
-
-    public Retrofit.Builder getRetrofitBuilder() {
-        return RetrofitClient.getInstance().getBuilder();
-    }
-
-    public Retrofit getRetorfit() {
-        return RetrofitClient.getInstance().getRetrofit();
-    }
-
     public GlobalHttpUtils setBaseUrl(String baseUrl) {
         getRetrofitBuilder().baseUrl(baseUrl);
         return this;
-    }
-
-    public <K> K createService(Class<K> cls) {
-        if (mRetrofitServiceCache == null) {
-            try {
-                ActivityManager activityManager = (ActivityManager) HttpUtils.getInstance().getContext().getSystemService(Context.ACTIVITY_SERVICE);
-                int targetMemoryCacheSize = (int) (activityManager.getMemoryClass() * MAX_SIZE_MULTIPLIER * 1024);
-                if (targetMemoryCacheSize < MAX_SIZE) {
-                    cache_size = targetMemoryCacheSize;
-                }
-            }catch (ExceptionInInitializerError exception){
-                cache_size = MAX_SIZE;
-            }
-            mRetrofitServiceCache = new LruCache<>(cache_size);
-        }
-        K retrofitService = (K) mRetrofitServiceCache.get(cls.getCanonicalName());
-        if (retrofitService == null) {
-            retrofitService = (K) Proxy.newProxyInstance(
-                    cls.getClassLoader(),
-                    new Class[]{cls},
-                    new RetrofitServiceProxyHandler(getRetorfit(), cls));
-            mRetrofitServiceCache.put(cls.getCanonicalName(), retrofitService);
-        }
-        return retrofitService;
     }
 
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps) {
@@ -103,12 +64,7 @@ public class GlobalHttpUtils {
 
     public GlobalHttpUtils setLog(boolean isShowLog) {
         if (isShowLog) {
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-                @Override
-                public void log(String message) {
-                    Log.i("GlobalHttpUtils", message);
-                }
-            });
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("GlobalHttpUtils", message));
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             getOkHttpClientBuilder().addInterceptor(loggingInterceptor);
         }
@@ -146,13 +102,22 @@ public class GlobalHttpUtils {
         return this;
     }
 
+    /**
+     * @param appKey 验签时前后端匹配的appKey，前后端一致即可
+     */
     public GlobalHttpUtils setSign(String appKey) {
         getOkHttpClientBuilder().addInterceptor(new SignInterceptor(appKey));
         return this;
     }
 
-    public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl) {
-        getOkHttpClientBuilder().addInterceptor(new EncryptionInterceptor(publicKeyUrl));
+    /**
+     * @param publicKeyUrl rsa公钥失效后重新请求秘钥的接口
+     * @param publicKey    rsa公钥
+     */
+    public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl, String publicKey) {
+        EncryptConfig.publicKeyUrl = publicKeyUrl;
+        EncryptConfig.publicKey = publicKey;
+        getOkHttpClientBuilder().addInterceptor(new EncryptionInterceptor());
         getOkHttpClientBuilder().addNetworkInterceptor(new DecryptionInterceptor());
         return this;
     }
@@ -212,4 +177,43 @@ public class GlobalHttpUtils {
         return this;
     }
 
+    public <K> K createService(Class<K> cls) {
+        if (mRetrofitServiceCache == null) {
+            try {
+                ActivityManager activityManager = (ActivityManager) HttpUtils.getInstance().getContext().getSystemService(Context.ACTIVITY_SERVICE);
+                int targetMemoryCacheSize = (int) (activityManager.getMemoryClass() * MAX_SIZE_MULTIPLIER * 1024);
+                if (targetMemoryCacheSize < MAX_SIZE) {
+                    cache_size = targetMemoryCacheSize;
+                }
+            } catch (ExceptionInInitializerError exception) {
+                cache_size = MAX_SIZE;
+            }
+            mRetrofitServiceCache = new LruCache<>(cache_size);
+        }
+        K retrofitService = (K) mRetrofitServiceCache.get(cls.getCanonicalName());
+        if (retrofitService == null) {
+            retrofitService = (K) Proxy.newProxyInstance(
+                    cls.getClassLoader(),
+                    new Class[]{cls},
+                    new RetrofitServiceProxyHandler(getRetrofit(), cls));
+            mRetrofitServiceCache.put(cls.getCanonicalName(), retrofitService);
+        }
+        return retrofitService;
+    }
+
+    public okhttp3.OkHttpClient.Builder getOkHttpClientBuilder() {
+        return OkHttpClient.getInstance().getBuilder();
+    }
+
+    public okhttp3.OkHttpClient getOkHttpClient() {
+        return OkHttpClient.getInstance().getClient();
+    }
+
+    public Retrofit.Builder getRetrofitBuilder() {
+        return RetrofitClient.getInstance().getBuilder();
+    }
+
+    public Retrofit getRetrofit() {
+        return RetrofitClient.getInstance().getRetrofit();
+    }
 }

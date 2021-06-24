@@ -2,6 +2,7 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import android.text.TextUtils;
 
+import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.utils.AESUtils;
 import com.zhangteng.rxhttputils.utils.RSAUtils;
@@ -30,21 +31,29 @@ public class DecryptionInterceptor implements Interceptor {
         ResponseBody responseBody = response.body();
         Headers responseHeaders = response.headers();
         for (String name : responseHeaders.names()) {
-            if (EncryptionInterceptor.SECRET.contains(name) && !TextUtils.isEmpty(responseHeaders.get(name))) {
+            if (EncryptConfig.SECRET.contains(name) && !TextUtils.isEmpty(responseHeaders.get(name))) {
                 try {
                     String encryptKey = responseHeaders.get(name);
-                    String aesResponseKey = RSAUtils.decryptByPublicKey(encryptKey, (String) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptionInterceptor.SECRET, EncryptionInterceptor.publicKey));
+                    String aesResponseKey = RSAUtils.decryptByPublicKey(encryptKey, (String) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, EncryptConfig.publicKey));
                     MediaType mediaType = responseBody != null ? responseBody.contentType() : MediaType.parse("application/json;charset=UTF-8");
                     String responseStr = responseBody != null ? responseBody.string() : "";
                     String rawResponseStr = AESUtils.decrypt(responseStr, aesResponseKey, aesResponseKey.substring(0, 16));
                     responseBuilder.body(ResponseBody.create(mediaType, rawResponseStr));
                     return responseBuilder.build();
                 } catch (Exception e) {
-                    responseBuilder.body(ResponseBody.create(MediaType.parse("application/json;charset=UTF-8"), String.format("{\"message\": \"移动端解密失败%s\",\"status\": %s}", e.getMessage(), EncryptionInterceptor.SECRET_ERROR)));
+                    responseBuilder.body(getErrorSecretResponse(e));
                     return responseBuilder.build();
                 }
             }
         }
         return response;
+    }
+
+
+    /**
+     * 获取解密失败响应
+     */
+    protected ResponseBody getErrorSecretResponse(Exception e) {
+        return ResponseBody.create(MediaType.parse("application/json;charset=UTF-8"), String.format("{\"message\": \"移动端解密失败%s\",\"status\": %s}", e.getMessage(), EncryptConfig.SECRET_ERROR));
     }
 }
