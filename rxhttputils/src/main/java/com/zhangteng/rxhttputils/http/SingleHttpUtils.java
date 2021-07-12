@@ -1,7 +1,6 @@
 package com.zhangteng.rxhttputils.http;
 
 import android.os.Environment;
-import android.text.TextUtils;
 import android.util.Log;
 
 import com.zhangteng.rxhttputils.config.EncryptConfig;
@@ -40,7 +39,7 @@ public class SingleHttpUtils {
     private Map<String, Object> headerMaps = new HashMap<>();
 
     private boolean isShowLog = true;
-    private boolean cache = false;
+    private boolean isCache = false;
     private boolean saveCookie = true;
     private boolean sign = false;
     private boolean encrypt = false;
@@ -65,7 +64,7 @@ public class SingleHttpUtils {
         return instance;
     }
 
-    public SingleHttpUtils baseUrl(String baseUrl) {
+    public SingleHttpUtils setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
         return this;
     }
@@ -100,12 +99,13 @@ public class SingleHttpUtils {
         return this;
     }
 
-    public SingleHttpUtils setCache(boolean cache) {
-        this.cache = cache;
+    public SingleHttpUtils setCache(boolean isCache) {
+        this.isCache = isCache;
         return this;
     }
 
-    public SingleHttpUtils setCache(String cachePath, long maxSize) {
+    public SingleHttpUtils setCache(boolean isCache, String cachePath, long maxSize) {
+        this.isCache = isCache;
         this.cachePath = cachePath;
         this.cacheMaxSize = maxSize;
         return this;
@@ -233,7 +233,7 @@ public class SingleHttpUtils {
         }
 
 
-        if (TextUtils.isEmpty(baseUrl)) {
+        if (baseUrl == null || baseUrl.isEmpty()) {
             singleRetrofitBuilder.baseUrl(RetrofitClient.getInstance().getRetrofit().baseUrl());
         } else {
             singleRetrofitBuilder.baseUrl(baseUrl);
@@ -259,10 +259,10 @@ public class SingleHttpUtils {
         if (sign) {
             singleOkHttpBuilder.addInterceptor(new SignInterceptor(appKey));
         }
-        if (cache) {
+        if (isCache) {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
             Cache cache;
-            if (!TextUtils.isEmpty(cachePath) && cacheMaxSize > 0) {
+            if ((cachePath != null && !cachePath.isEmpty()) && cacheMaxSize > 0) {
                 cache = new Cache(new File(cachePath), cacheMaxSize);
             } else {
                 cache = new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/RxHttpUtilsCache")

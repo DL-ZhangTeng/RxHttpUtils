@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
 //                });
         HttpUtils.getInstance()
                 .ConfigSingleInstance()
-                .baseUrl("http://**/")
+                .setBaseUrl("http://**/")
                 .createService(ApiService.class)
                 .loginPwd("admin", "admin")
                 .compose(new ObservableTransformer<>(mProgressDialog))

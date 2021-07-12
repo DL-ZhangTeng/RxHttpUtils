@@ -4,7 +4,6 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
-import android.util.LruCache;
 
 import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
@@ -14,6 +13,7 @@ import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
+import com.zhangteng.rxhttputils.utils.LruCache;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
 import com.zhangteng.rxhttputils.utils.SSLUtils;
 
@@ -71,25 +71,29 @@ public class GlobalHttpUtils {
         return this;
     }
 
-    public GlobalHttpUtils setCache() {
-        CacheInterceptor cacheInterceptor = new CacheInterceptor();
-        File file = new File(Environment.getExternalStorageDirectory() + "/RxHttpUtilsCache");
-        Cache cache = new Cache(file, 1024 * 1024);
-        getOkHttpClientBuilder()
-                .addInterceptor(cacheInterceptor)
-                .addNetworkInterceptor(cacheInterceptor)
-                .cache(cache);
+    public GlobalHttpUtils setCache(boolean isCache) {
+        if (isCache) {
+            CacheInterceptor cacheInterceptor = new CacheInterceptor();
+            File file = new File(Environment.getExternalStorageDirectory() + "/RxHttpUtilsCache");
+            Cache cache = new Cache(file, 1024 * 1024);
+            getOkHttpClientBuilder()
+                    .addInterceptor(cacheInterceptor)
+                    .addNetworkInterceptor(cacheInterceptor)
+                    .cache(cache);
+        }
         return this;
     }
 
-    public GlobalHttpUtils setCache(String path, long maxSize) {
-        CacheInterceptor cacheInterceptor = new CacheInterceptor();
-        File file = new File(path);
-        Cache cache = new Cache(file, maxSize);
-        getOkHttpClientBuilder()
-                .addInterceptor(cacheInterceptor)
-                .addNetworkInterceptor(cacheInterceptor)
-                .cache(cache);
+    public GlobalHttpUtils setCache(boolean isCache, String path, long maxSize) {
+        if (isCache) {
+            CacheInterceptor cacheInterceptor = new CacheInterceptor();
+            File file = new File(path);
+            Cache cache = new Cache(file, maxSize);
+            getOkHttpClientBuilder()
+                    .addInterceptor(cacheInterceptor)
+                    .addNetworkInterceptor(cacheInterceptor)
+                    .cache(cache);
+        }
         return this;
     }
 
@@ -199,6 +203,10 @@ public class GlobalHttpUtils {
             mRetrofitServiceCache.put(cls.getCanonicalName(), retrofitService);
         }
         return retrofitService;
+    }
+
+    public <K> K createServiceNoCache(Class<K> cls) {
+        return getRetrofit().create(cls);
     }
 
     public okhttp3.OkHttpClient.Builder getOkHttpClientBuilder() {

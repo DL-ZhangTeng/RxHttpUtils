@@ -14,7 +14,7 @@ public class MainApplication extends Application {
                 //全局的BaseUrl
                 .setBaseUrl("http://**/")
                 //开启缓存策略
-                .setCache()
+                .setCache(true)
                 //全局的请求头信息
                 //.setHeaders(headerMaps)
                 //全局持久话cookie,保存本地每次都会携带在header中
