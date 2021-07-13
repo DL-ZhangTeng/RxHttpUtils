@@ -3,7 +3,6 @@ package com.zhangteng.rxhttputils.fileload.upload;
 
 import android.app.Dialog;
 
-import com.zhangteng.rxhttputils.http.RetrofitClient;
 import com.zhangteng.rxhttputils.interceptor.ObservableTransformer;
 
 import java.io.File;
@@ -41,7 +40,7 @@ public class UploadRetrofit {
     public static UploadRetrofit getInstance() {
 
         if (instance == null) {
-            synchronized (RetrofitClient.class) {
+            synchronized (UploadRetrofit.class) {
                 if (instance == null) {
                     instance = new UploadRetrofit();
                 }

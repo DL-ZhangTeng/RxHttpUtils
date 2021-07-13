@@ -1,6 +1,5 @@
 package com.zhangteng.rxhttputils.fileload.download;
 
-import com.zhangteng.rxhttputils.http.RetrofitClient;
 import com.zhangteng.rxhttputils.interceptor.ObservableTransformer;
 
 import io.reactivex.Observable;
@@ -32,7 +31,7 @@ public class DownloadRetrofit {
     public static DownloadRetrofit getInstance() {
 
         if (instance == null) {
-            synchronized (RetrofitClient.class) {
+            synchronized (DownloadRetrofit.class) {
                 if (instance == null) {
                     instance = new DownloadRetrofit();
                 }
