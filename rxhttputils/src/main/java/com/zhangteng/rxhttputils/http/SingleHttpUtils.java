@@ -11,10 +11,12 @@ import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
+import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
 import com.zhangteng.rxhttputils.utils.SSLUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -194,7 +196,10 @@ public class SingleHttpUtils {
      * @return
      */
     public <K> K createService(Class<K> cls) {
-        return getSingleRetrofitBuilder().build().create(cls);
+        return (K) Proxy.newProxyInstance(
+                cls.getClassLoader(),
+                new Class[]{cls},
+                new RetrofitServiceProxyHandler(getSingleRetrofitBuilder().build(), cls));
     }
 
 

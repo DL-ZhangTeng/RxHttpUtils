@@ -206,7 +206,10 @@ public class GlobalHttpUtils {
     }
 
     public <K> K createServiceNoCache(Class<K> cls) {
-        return getRetrofit().create(cls);
+        return (K) Proxy.newProxyInstance(
+                cls.getClassLoader(),
+                new Class[]{cls},
+                new RetrofitServiceProxyHandler(getRetrofit(), cls));
     }
 
     public okhttp3.OkHttpClient.Builder getOkHttpClientBuilder() {
