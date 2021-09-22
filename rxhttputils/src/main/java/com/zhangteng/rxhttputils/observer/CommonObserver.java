@@ -2,7 +2,10 @@ package com.zhangteng.rxhttputils.observer;
 
 import android.app.Dialog;
 
+import androidx.lifecycle.LifecycleOwner;
+
 import com.zhangteng.rxhttputils.http.HttpUtils;
+import com.zhangteng.rxhttputils.lifecycle.HttpLifecycleEventObserver;
 import com.zhangteng.rxhttputils.observer.base.BaseObserver;
 import com.zhangteng.rxhttputils.utils.ToastUtils;
 
@@ -21,8 +24,12 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
     public CommonObserver() {
     }
 
+
     public CommonObserver(Object tag) {
         this.tag = tag;
+        if (tag instanceof LifecycleOwner) {
+            HttpLifecycleEventObserver.bind((LifecycleOwner) tag);
+        }
     }
 
     public CommonObserver(Dialog progressDialog) {
@@ -32,6 +39,9 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
     public CommonObserver(Dialog mProgressDialog, Object tag) {
         this.mProgressDialog = mProgressDialog;
         this.tag = tag;
+        if (tag instanceof LifecycleOwner) {
+            HttpLifecycleEventObserver.bind((LifecycleOwner) tag);
+        }
     }
 
     /**
@@ -56,6 +66,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnError(String errorMsg) {
+        if (isTargetDestroy()) return;
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
@@ -68,6 +79,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnCompleted() {
+        if (isTargetDestroy()) return;
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
@@ -75,6 +87,16 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnNext(T t) {
+        if (isTargetDestroy()) return;
         onSuccess(t);
+    }
+
+    /**
+     * @description 目标是否销毁
+     */
+    private boolean isTargetDestroy() {
+        return tag != null
+                && tag instanceof LifecycleOwner
+                && !HttpLifecycleEventObserver.isLifecycleActive((LifecycleOwner) tag);
     }
 }
