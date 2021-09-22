@@ -16,11 +16,22 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     private Dialog mProgressDialog;
 
+    private Object tag;
+
     public CommonObserver() {
+    }
+
+    public CommonObserver(Object tag) {
+        this.tag = tag;
     }
 
     public CommonObserver(Dialog progressDialog) {
         mProgressDialog = progressDialog;
+    }
+
+    public CommonObserver(Dialog mProgressDialog, Object tag) {
+        this.mProgressDialog = mProgressDialog;
+        this.tag = tag;
     }
 
     /**
@@ -40,7 +51,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnSubscribe(Disposable d) {
-        HttpUtils.getInstance().addDisposable(d);
+        HttpUtils.getInstance().addDisposable(d, tag);
     }
 
     @Override

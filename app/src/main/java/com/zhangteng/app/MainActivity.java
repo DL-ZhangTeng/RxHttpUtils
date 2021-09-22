@@ -9,11 +9,12 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.zhangteng.app.R;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.interceptor.ObservableTransformer;
 import com.zhangteng.rxhttputils.observer.CommonObserver;
 import com.zhangteng.rxhttputils.utils.ToastUtils;
+
+import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +55,13 @@ public class MainActivity extends AppCompatActivity {
                 .createService(ApiService.class)
                 .loginPwd("admin", "admin")
                 .compose(new ObservableTransformer<>(mProgressDialog))
-                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
+                .subscribe(new CommonObserver<BaseResponse<LoginBean>>(MainActivity.this) {
+                    @Override
+                    public void doOnSubscribe(Disposable d) {
+                        super.doOnSubscribe(d);
+
+                    }
+
                     @Override
                     protected void onFailure(String errorMsg) {
 
@@ -65,5 +72,13 @@ public class MainActivity extends AppCompatActivity {
                         ToastUtils.show(MainActivity.this, bean.getMsg(), Toast.LENGTH_LONG);
                     }
                 });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        HttpUtils.getInstance().cancelSingleRequest(this);
+//        HttpUtils.getInstance().cancelSingleRequest(Disposable);
+//        HttpUtils.getInstance().cancelAllRequest();
     }
 }

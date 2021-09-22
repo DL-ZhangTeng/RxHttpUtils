@@ -8,7 +8,7 @@ import com.zhangteng.rxhttputils.fileload.download.DownloadRetrofit;
 import com.zhangteng.rxhttputils.fileload.upload.UploadRetrofit;
 import com.zhangteng.rxhttputils.utils.SPUtils;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -22,10 +22,10 @@ import okhttp3.ResponseBody;
 public class HttpUtils {
     private static HttpUtils instance;
     private static Application context;
-    private static List<Disposable> disposables;
+    private static HashMap<Disposable, Object> disposables;
 
     private HttpUtils() {
-        disposables = new ArrayList<>();
+        disposables = new HashMap<>();
     }
 
     public static HttpUtils getInstance() {
@@ -75,13 +75,19 @@ public class HttpUtils {
 
     public void addDisposable(Disposable disposable) {
         if (disposables != null) {
-            disposables.add(disposable);
+            disposables.put(disposable, null);
+        }
+    }
+
+    public void addDisposable(Disposable disposable, Object tag) {
+        if (disposables != null) {
+            disposables.put(disposable, tag);
         }
     }
 
     public void cancelAllRequest() {
         if (disposables != null) {
-            for (Disposable disposable : disposables) {
+            for (Disposable disposable : disposables.keySet()) {
                 disposable.dispose();
             }
             disposables.clear();
@@ -91,6 +97,26 @@ public class HttpUtils {
     public void cancelSingleRequest(Disposable disposable) {
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
+        }
+        if (disposables != null) {
+            disposables.remove(disposable);
+        }
+    }
+
+    /**
+     * @param tag 单个请求的标识（推荐使用Activity/Fragment.this）
+     * @description 通过tag取消请求，tag可以通过CommonObserver创建时传入
+     */
+    public void cancelSingleRequest(Object tag) {
+        if (tag != null && disposables != null) {
+            for (Disposable disposable : disposables.keySet()) {
+                if (tag.equals(disposables.get(disposable)) && !disposable.isDisposed()) {
+                    disposable.dispose();
+                }
+                if (disposable.isDisposed()) {
+                    disposables.remove(disposable);
+                }
+            }
         }
     }
 
