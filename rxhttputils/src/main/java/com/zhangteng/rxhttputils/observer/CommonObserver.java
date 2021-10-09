@@ -19,6 +19,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     private Dialog mProgressDialog;
 
+    private Disposable disposable;
     private Object tag;
 
     public CommonObserver() {
@@ -61,11 +62,20 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnSubscribe(Disposable d) {
-        HttpUtils.getInstance().addDisposable(d, tag);
+        this.disposable = d;
+        if (tag == null) {
+            HttpUtils.getInstance().addDisposable(d);
+        } else {
+            HttpUtils.getInstance().addDisposable(d, tag);
+        }
     }
 
     @Override
     public void doOnError(String errorMsg) {
+        if (disposable != null) {
+            HttpUtils.getInstance().cancelSingleRequest(disposable);
+            disposable = null;
+        }
         if (isTargetDestroy()) return;
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
@@ -79,6 +89,10 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
 
     @Override
     public void doOnCompleted() {
+        if (disposable != null) {
+            HttpUtils.getInstance().cancelSingleRequest(disposable);
+            disposable = null;
+        }
         if (isTargetDestroy()) return;
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();

@@ -73,18 +73,32 @@ public class HttpUtils {
         return preferences;
     }
 
+    /**
+     * description 添加可处理对象集合
+     *
+     * @param disposable 可取消的对象
+     */
     public void addDisposable(Disposable disposable) {
         if (disposables != null) {
             disposables.put(disposable, null);
         }
     }
 
+    /**
+     * description 添加可处理对象集合，可使用标记tag取消请求，配合生命周期监听可以在页面销毁时自动取消全部请求
+     *
+     * @param disposable 可取消的对象
+     * @param tag        标记
+     */
     public void addDisposable(Disposable disposable, Object tag) {
         if (disposables != null) {
             disposables.put(disposable, tag);
         }
     }
 
+    /**
+     * description 清除所有请求
+     */
     public void cancelAllRequest() {
         if (disposables != null) {
             for (Disposable disposable : disposables.keySet()) {
@@ -94,6 +108,11 @@ public class HttpUtils {
         }
     }
 
+    /**
+     * description 取消单个请求，且单个请求结束后需要移除disposables时也可使用本方法
+     *
+     * @param disposable 可取消的对象
+     */
     public void cancelSingleRequest(Disposable disposable) {
         if (disposable != null && !disposable.isDisposed()) {
             disposable.dispose();
@@ -104,8 +123,8 @@ public class HttpUtils {
     }
 
     /**
-     * @param tag 单个请求的标识（推荐使用Activity/Fragment.this）
-     * @description 通过tag取消请求，tag可以通过CommonObserver创建时传入
+     * @param tag 单个请求的标识（推荐使用Activity/Fragment.this）,多个请求可以使用同一个tag，取消请求时会同时取消
+     * @description 通过tag取消请求，tag可以通过CommonObserver/LifecycleObservableTransformer创建时传入
      */
     public void cancelSingleRequest(Object tag) {
         if (tag != null && disposables != null) {

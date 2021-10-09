@@ -6,11 +6,11 @@ import androidx.lifecycle.LifecycleOwner;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.lifecycle.HttpLifecycleEventObserver;
 
-import org.jetbrains.annotations.NotNull;
-
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.ObservableTransformer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**
@@ -20,7 +20,11 @@ import io.reactivex.schedulers.Schedulers;
  */
 public class LifecycleObservableTransformer<T> implements ObservableTransformer<T, T> {
 
-    private final Object tag;
+    private Object tag;
+    private Disposable disposable;
+
+    public LifecycleObservableTransformer() {
+    }
 
     public LifecycleObservableTransformer(Object tag) {
         this.tag = tag;
@@ -29,11 +33,25 @@ public class LifecycleObservableTransformer<T> implements ObservableTransformer<
         }
     }
 
-    @NotNull
     @Override
     public ObservableSource<T> apply(Observable<T> upstream) {
         return upstream
                 .subscribeOn(Schedulers.io())
-                .doOnSubscribe(disposable -> HttpUtils.getInstance().addDisposable(disposable, tag));
+                .doOnSubscribe(d -> {
+                    this.disposable = d;
+                    if (tag == null) {
+                        HttpUtils.getInstance().addDisposable(d);
+                    } else {
+                        HttpUtils.getInstance().addDisposable(d, tag);
+                    }
+                })
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doFinally(() -> {
+                    if (disposable != null) {
+                        HttpUtils.getInstance().cancelSingleRequest(disposable);
+                        disposable = null;
+                    }
+                });
     }
 }
