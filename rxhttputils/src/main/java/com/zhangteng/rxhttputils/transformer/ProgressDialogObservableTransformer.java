@@ -1,24 +1,33 @@
-package com.zhangteng.rxhttputils.interceptor;
+package com.zhangteng.rxhttputils.transformer;
 
 
 import android.app.Dialog;
 
+import org.jetbrains.annotations.NotNull;
+
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.schedulers.Schedulers;
 
-public class ObservableTransformer<T> implements io.reactivex.ObservableTransformer<T, T> {
+/**
+ * description: 带加载中动画处理的数据源转换器
+ * author: Swing
+ * date: 2021/10/9
+ */
+public class ProgressDialogObservableTransformer<T> implements ObservableTransformer<T, T> {
 
     private Dialog mProgressDialog;
 
-    public ObservableTransformer() {
+    public ProgressDialogObservableTransformer() {
     }
 
-    public ObservableTransformer(Dialog mProgressDialog) {
+    public ProgressDialogObservableTransformer(Dialog mProgressDialog) {
         this.mProgressDialog = mProgressDialog;
     }
 
+    @NotNull
     @Override
     public ObservableSource<T> apply(Observable<T> upstream) {
         return upstream

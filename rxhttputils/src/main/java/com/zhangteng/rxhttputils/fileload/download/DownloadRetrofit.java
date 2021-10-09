@@ -1,6 +1,6 @@
 package com.zhangteng.rxhttputils.fileload.download;
 
-import com.zhangteng.rxhttputils.interceptor.ObservableTransformer;
+import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
 
 import io.reactivex.Observable;
 import okhttp3.ResponseBody;
@@ -51,6 +51,6 @@ public class DownloadRetrofit {
                 .getRetrofit()
                 .create(DownloadApi.class)
                 .downloadFile(fileUrl)
-                .compose(new ObservableTransformer<ResponseBody>());
+                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
     }
 }

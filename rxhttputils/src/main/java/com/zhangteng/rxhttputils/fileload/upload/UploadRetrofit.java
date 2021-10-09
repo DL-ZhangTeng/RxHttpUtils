@@ -3,7 +3,7 @@ package com.zhangteng.rxhttputils.fileload.upload;
 
 import android.app.Dialog;
 
-import com.zhangteng.rxhttputils.interceptor.ObservableTransformer;
+import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
 
 import java.io.File;
 import java.util.List;
@@ -67,7 +67,7 @@ public class UploadRetrofit {
                 .getRetrofit()
                 .create(UploadFileApi.class)
                 .uploadImg(uploadUrl, body)
-                .compose(new ObservableTransformer<ResponseBody>());
+                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
     }
 
     public static Observable<ResponseBody> uploadImg(String uploadUrl, String filePath, Dialog loadingDialog) {
@@ -103,6 +103,6 @@ public class UploadRetrofit {
                 .getRetrofit()
                 .create(UploadFileApi.class)
                 .uploadImgs(uploadUrl, parts)
-                .compose(new ObservableTransformer<ResponseBody>());
+                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
     }
 }
