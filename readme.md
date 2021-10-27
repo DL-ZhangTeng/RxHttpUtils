@@ -1,22 +1,7 @@
 # RxJava+Retrofit网络加载库二次封装-RxHttpUtils
 RxHttpUtils是RxJava+Retrofit网络加载库二次封装，包含网络加载动画、activity销毁自动取消请求、网络缓存、公共参数、RSA+AES加密等
-[GitHub仓库地址](https://github.com/duoluo9/RxHttpUtils)
+[GitHub仓库地址](https://github.com/DL-ZhangTeng/RxHttpUtils)
 ## 引入
-### maven
-```xml
-<repositories>
-		<repository>
-		    <id>jitpack.io</id>
-		    <url>https://jitpack.io</url>
-		</repository>
-</repositories>
-
-<dependency>
-	    <groupId>com.github.duoluo9</groupId>
-	    <artifactId>RxHttpUtils</artifactId>
-	    <version>1.1.6</version>
-</dependency>
-```
 
 ### gradle
 ```groovy
@@ -26,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.duoluo9:RxHttpUtils:1.1.6'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.1.6'
 //库所使用的三方
 implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
 implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
