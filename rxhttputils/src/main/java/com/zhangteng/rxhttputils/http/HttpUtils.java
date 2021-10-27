@@ -60,12 +60,50 @@ public class HttpUtils {
         return DownloadRetrofit.downloadFile(fileUrl);
     }
 
-    public Observable<ResponseBody> uploadImg(String uploadUrl, String filePath) {
-        return UploadRetrofit.uploadImg(uploadUrl, filePath);
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param filePath  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public Observable<ResponseBody> uploadFile(String uploadUrl, String filePath) {
+        return UploadRetrofit.uploadFile(uploadUrl, filePath);
     }
 
-    public Observable<ResponseBody> uploadImgs(String uploadUrl, List<String> filePaths) {
-        return UploadRetrofit.uploadImgs(uploadUrl, filePaths);
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param fieldName 后台接收图片流的参数名
+     * @param filePath  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public Observable<ResponseBody> uploadFile(String uploadUrl, String fieldName, String filePath) {
+        return UploadRetrofit.uploadFile(uploadUrl, fieldName, filePath);
+    }
+
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param filePaths 文件路径
+     * @return Observable<ResponseBody>
+     */
+    public Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> filePaths) {
+        return UploadRetrofit.uploadFiles(uploadUrl, filePaths);
+    }
+
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl  后台url
+     * @param fieldNames 后台接收图片流的参数名
+     * @param filePaths  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> fieldNames, List<String> filePaths) {
+        return UploadRetrofit.uploadFiles(uploadUrl, fieldNames, filePaths);
     }
 
     public HashSet<String> getCookie() {

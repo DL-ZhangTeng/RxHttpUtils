@@ -1,11 +1,11 @@
 package com.zhangteng.rxhttputils.fileload.upload;
 
 
-import android.app.Dialog;
-
+import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
@@ -26,14 +26,11 @@ public class UploadRetrofit {
     private static UploadRetrofit instance;
     private Retrofit mRetrofit;
 
-    private static String baseUrl = "https://www.baidu.com/";
-
-
     private UploadRetrofit() {
         mRetrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(baseUrl)
+                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
                 .build();
     }
 
@@ -54,29 +51,32 @@ public class UploadRetrofit {
         return mRetrofit;
     }
 
-    public static Observable<ResponseBody> uploadImg(String uploadUrl, String filePath) {
-        File file = new File(filePath);
-
-        RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-
-        MultipartBody.Part body =
-                MultipartBody.Part.createFormData("uploaded_file", file.getName(), requestFile);
-
-        return UploadRetrofit
-                .getInstance()
-                .getRetrofit()
-                .create(UploadFileApi.class)
-                .uploadImg(uploadUrl, body)
-                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param filePath  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public static Observable<ResponseBody> uploadFile(String uploadUrl, String filePath) {
+        return uploadFile(uploadUrl, "uploaded_file", filePath);
     }
 
-    public static Observable<ResponseBody> uploadImg(String uploadUrl, String filePath, Dialog loadingDialog) {
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param fieldName 后台接收图片流的参数名
+     * @param filePath  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public static Observable<ResponseBody> uploadFile(String uploadUrl, String fieldName, String filePath) {
         File file = new File(filePath);
 
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
 
         MultipartBody.Part body =
-                MultipartBody.Part.createFormData("uploaded_file", file.getName(), requestFile);
+                MultipartBody.Part.createFormData(fieldName, file.getName(), requestFile);
 
         return UploadRetrofit
                 .getInstance()
@@ -85,7 +85,30 @@ public class UploadRetrofit {
                 .uploadImg(uploadUrl, body);
     }
 
-    public static Observable<ResponseBody> uploadImgs(String uploadUrl, List<String> filePaths) {
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl 后台url
+     * @param filePaths 文件路径
+     * @return Observable<ResponseBody>
+     */
+    public static Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> filePaths) {
+        List<String> fieldNames = new ArrayList<>();
+        for (int i = 0; i < filePaths.size(); i++) {
+            fieldNames.add("uploaded_file" + i);
+        }
+        return uploadFiles(uploadUrl, fieldNames, filePaths);
+    }
+
+    /**
+     * description 上传文件
+     *
+     * @param uploadUrl  后台url
+     * @param fieldNames 后台接收图片流的参数名
+     * @param filePaths  文件路径
+     * @return Observable<ResponseBody>
+     */
+    public static Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> fieldNames, List<String> filePaths) {
 
         MultipartBody.Builder builder = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM);
@@ -93,7 +116,7 @@ public class UploadRetrofit {
             File file = new File(filePaths.get(i));
             RequestBody imageBody = RequestBody.create(MediaType.parse("multipart/form-data"), file);
             //"uploaded_file"+i 后台接收图片流的参数名
-            builder.addFormDataPart("uploaded_file" + i, file.getName(), imageBody);
+            builder.addFormDataPart(fieldNames.get(i), file.getName(), imageBody);
         }
 
         List<MultipartBody.Part> parts = builder.build().parts();
@@ -103,6 +126,6 @@ public class UploadRetrofit {
                 .getRetrofit()
                 .create(UploadFileApi.class)
                 .uploadImgs(uploadUrl, parts)
-                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
+                .compose(new ProgressDialogObservableTransformer<>());
     }
 }

@@ -1,5 +1,6 @@
 package com.zhangteng.rxhttputils.fileload.download;
 
+import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
 
 import io.reactivex.Observable;
@@ -17,14 +18,11 @@ public class DownloadRetrofit {
     private static DownloadRetrofit instance;
     private Retrofit mRetrofit;
 
-    private static String baseUrl = "https://www.baidu.com/";
-
-
     private DownloadRetrofit() {
         mRetrofit = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(baseUrl)
+                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
                 .build();
     }
 
