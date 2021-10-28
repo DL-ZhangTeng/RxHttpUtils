@@ -25,7 +25,7 @@ public interface UploadFileApi {
      */
     @Multipart
     @POST
-    Observable<ResponseBody> uploadImg(@Url String uploadUrl,
+    Observable<ResponseBody> uploadFile(@Url String uploadUrl,
                                        @Part MultipartBody.Part file);
 
 
@@ -38,6 +38,6 @@ public interface UploadFileApi {
      */
     @Multipart
     @POST
-    Observable<ResponseBody> uploadImgs(@Url String uploadUrl,
+    Observable<ResponseBody> uploadFiles(@Url String uploadUrl,
                                         @Part List<MultipartBody.Part> files);
 }

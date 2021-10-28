@@ -82,7 +82,7 @@ public class UploadRetrofit {
                 .getInstance()
                 .getRetrofit()
                 .create(UploadFileApi.class)
-                .uploadImg(uploadUrl, body);
+                .uploadFile(uploadUrl, body);
     }
 
     /**
@@ -125,7 +125,7 @@ public class UploadRetrofit {
                 .getInstance()
                 .getRetrofit()
                 .create(UploadFileApi.class)
-                .uploadImgs(uploadUrl, parts)
+                .uploadFiles(uploadUrl, parts)
                 .compose(new ProgressDialogObservableTransformer<>());
     }
 }
