@@ -61,7 +61,7 @@ public class HttpUtils {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param filePath  文件路径
@@ -72,7 +72,7 @@ public class HttpUtils {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param fieldName 后台接收图片流的参数名
@@ -84,7 +84,7 @@ public class HttpUtils {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param filePaths 文件路径
@@ -95,7 +95,7 @@ public class HttpUtils {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl  后台url
      * @param fieldNames 后台接收图片流的参数名

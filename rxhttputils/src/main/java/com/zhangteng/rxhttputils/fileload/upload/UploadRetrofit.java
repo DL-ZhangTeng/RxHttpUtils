@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observable;
+import okhttp3.HttpUrl;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
@@ -68,6 +69,21 @@ public class UploadRetrofit {
      */
     public UploadRetrofit setBaseUrl(String baseUrl) {
         if (TextUtils.isEmpty(baseUrl)) {
+            builder.baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl());
+        } else {
+            builder.baseUrl(baseUrl);
+        }
+        return this;
+    }
+
+    /**
+     * description 自定义baseUrl
+     *
+     * @param baseUrl 公共url
+     * @return UploadRetrofit
+     */
+    public UploadRetrofit setBaseUrl(HttpUrl baseUrl) {
+        if (baseUrl == null) {
             builder.baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl());
         } else {
             builder.baseUrl(baseUrl);

@@ -2,6 +2,7 @@ package com.zhangteng.app;
 
 import android.app.Application;
 
+import com.zhangteng.rxhttputils.fileload.upload.UploadRetrofit;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 
 public class MainApplication extends Application {
@@ -34,5 +35,9 @@ public class MainApplication extends Application {
                 .setConnectionTimeOut(10)
                 //全局是否打开请求log日志
                 .setLog(true);
+        //上传初始化，默认使用全局配置可不设置
+        UploadRetrofit.getInstance()
+                .setBaseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
+                .setOkHttpClient(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
     }
 }
