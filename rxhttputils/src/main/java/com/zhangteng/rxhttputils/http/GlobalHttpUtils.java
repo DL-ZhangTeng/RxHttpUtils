@@ -64,10 +64,17 @@ public class GlobalHttpUtils {
 
     public GlobalHttpUtils setLog(boolean isShowLog) {
         if (isShowLog) {
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("GlobalHttpUtils", message));
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             getOkHttpClientBuilder().addInterceptor(loggingInterceptor);
         }
+        return this;
+    }
+
+    public GlobalHttpUtils setLog(HttpLoggingInterceptor.Logger logger) {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(logger);
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        getOkHttpClientBuilder().addInterceptor(loggingInterceptor);
         return this;
     }
 

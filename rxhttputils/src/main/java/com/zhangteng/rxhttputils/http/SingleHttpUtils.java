@@ -41,6 +41,7 @@ public class SingleHttpUtils {
     private Map<String, Object> headerMaps = new HashMap<>();
 
     private boolean isShowLog = true;
+    private HttpLoggingInterceptor.Logger logger = null;
     private boolean isCache = false;
     private boolean saveCookie = true;
     private boolean sign = false;
@@ -98,6 +99,12 @@ public class SingleHttpUtils {
 
     public SingleHttpUtils setLog(boolean isShowLog) {
         this.isShowLog = isShowLog;
+        return this;
+    }
+
+    public SingleHttpUtils setLog(HttpLoggingInterceptor.Logger logger) {
+        this.isShowLog = true;
+        this.logger = logger;
         return this;
     }
 
@@ -278,7 +285,12 @@ public class SingleHttpUtils {
                     .cache(cache);
         }
         if (isShowLog) {
-            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.e("SingleHttpUtils", message));
+            HttpLoggingInterceptor loggingInterceptor;
+            if (logger == null) {
+                loggingInterceptor = new HttpLoggingInterceptor(message -> Log.e("HttpUtils", message));
+            } else {
+                loggingInterceptor = new HttpLoggingInterceptor(logger);
+            }
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
             singleOkHttpBuilder.addInterceptor(loggingInterceptor);
         }
