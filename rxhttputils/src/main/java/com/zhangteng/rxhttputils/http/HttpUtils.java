@@ -10,11 +10,8 @@ import com.zhangteng.rxhttputils.utils.SPUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 
-import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
-import okhttp3.ResponseBody;
 
 /**
  * Created by swing on 2018/4/24.
@@ -48,62 +45,32 @@ public class HttpUtils {
         return context;
     }
 
+    /**
+     * description 全局网络请求工具
+     */
     public GlobalHttpUtils ConfigGlobalHttpUtils() {
         return GlobalHttpUtils.getInstance();
     }
 
+    /**
+     * description 单个网络请求工具
+     */
     public SingleHttpUtils ConfigSingleInstance() {
         return SingleHttpUtils.getInstance();
     }
 
-    public Observable<ResponseBody> downloadFile(String fileUrl) {
-        return DownloadRetrofit.downloadFile(fileUrl);
+    /**
+     * description 上传请求工具
+     */
+    public UploadRetrofit UploadRetrofit() {
+        return UploadRetrofit.getInstance();
     }
 
     /**
-     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
-     *
-     * @param uploadUrl 后台url
-     * @param filePath  文件路径
-     * @return Observable<ResponseBody>
+     * description 下载请求工具
      */
-    public Observable<ResponseBody> uploadFile(String uploadUrl, String filePath) {
-        return UploadRetrofit.uploadFile(uploadUrl, filePath);
-    }
-
-    /**
-     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
-     *
-     * @param uploadUrl 后台url
-     * @param fieldName 后台接收图片流的参数名
-     * @param filePath  文件路径
-     * @return Observable<ResponseBody>
-     */
-    public Observable<ResponseBody> uploadFile(String uploadUrl, String fieldName, String filePath) {
-        return UploadRetrofit.uploadFile(uploadUrl, fieldName, filePath);
-    }
-
-    /**
-     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
-     *
-     * @param uploadUrl 后台url
-     * @param filePaths 文件路径
-     * @return Observable<ResponseBody>
-     */
-    public Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> filePaths) {
-        return UploadRetrofit.uploadFiles(uploadUrl, filePaths);
-    }
-
-    /**
-     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
-     *
-     * @param uploadUrl  后台url
-     * @param fieldNames 后台接收图片流的参数名
-     * @param filePaths  文件路径
-     * @return Observable<ResponseBody>
-     */
-    public Observable<ResponseBody> uploadFiles(String uploadUrl, List<String> fieldNames, List<String> filePaths) {
-        return UploadRetrofit.uploadFiles(uploadUrl, fieldNames, filePaths);
+    public DownloadRetrofit DownloadRetrofit() {
+        return DownloadRetrofit.getInstance();
     }
 
     public HashSet<String> getCookie() {

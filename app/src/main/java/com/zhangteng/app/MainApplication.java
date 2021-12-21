@@ -2,14 +2,16 @@ package com.zhangteng.app;
 
 import android.app.Application;
 
-import com.zhangteng.rxhttputils.fileload.upload.UploadRetrofit;
 import com.zhangteng.rxhttputils.http.HttpUtils;
+
+import okhttp3.OkHttpClient;
 
 public class MainApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
         HttpUtils.init(this);
+        //全局网络配置
         HttpUtils.getInstance()
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
@@ -35,9 +37,15 @@ public class MainApplication extends Application {
                 .setConnectionTimeOut(10)
                 //全局是否打开请求log日志
                 .setLog(true);
-        //上传初始化，默认使用全局配置可不设置
-        UploadRetrofit.getInstance()
-                .setBaseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
-                .setOkHttpClient(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
+        //上传配置，默认使用全局配置可不设置（如token等信息全局配置后上传文件可通过验证token）
+        HttpUtils.getInstance()
+                .UploadRetrofit()
+                .setBaseUrl("http://**/")
+                .setOkHttpClient(new OkHttpClient());
+        //下载配置，默认使用全局配置可不设置（如token等信息全局配置后下载文件可通过验证token）
+        HttpUtils.getInstance()
+                .DownloadRetrofit()
+                .setBaseUrl("http://**/")
+                .setOkHttpClient(new OkHttpClient());
     }
 }

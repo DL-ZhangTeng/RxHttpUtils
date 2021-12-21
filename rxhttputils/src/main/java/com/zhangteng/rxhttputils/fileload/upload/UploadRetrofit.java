@@ -29,7 +29,7 @@ public class UploadRetrofit {
 
     private static UploadRetrofit instance;
     private Retrofit mRetrofit;
-    private Retrofit.Builder builder;
+    private final Retrofit.Builder builder;
 
     private UploadRetrofit() {
         builder = new Retrofit.Builder()
@@ -107,7 +107,7 @@ public class UploadRetrofit {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param filePath  文件路径
@@ -118,7 +118,7 @@ public class UploadRetrofit {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param fieldName 后台接收图片流的参数名
@@ -141,7 +141,7 @@ public class UploadRetrofit {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl 后台url
      * @param filePaths 文件路径
@@ -156,7 +156,7 @@ public class UploadRetrofit {
     }
 
     /**
-     * description 上传文件
+     * description 上传文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
      *
      * @param uploadUrl  后台url
      * @param fieldNames 后台接收图片流的参数名
