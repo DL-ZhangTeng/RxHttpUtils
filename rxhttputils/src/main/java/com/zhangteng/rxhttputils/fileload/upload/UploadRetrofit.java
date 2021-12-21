@@ -1,6 +1,8 @@
 package com.zhangteng.rxhttputils.fileload.upload;
 
 
+import android.text.TextUtils;
+
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
 
@@ -11,6 +13,7 @@ import java.util.List;
 import io.reactivex.Observable;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
@@ -25,13 +28,16 @@ public class UploadRetrofit {
 
     private static UploadRetrofit instance;
     private Retrofit mRetrofit;
+    private Retrofit.Builder builder;
 
     private UploadRetrofit() {
-        mRetrofit = new Retrofit.Builder()
+        builder = new Retrofit.Builder()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
+                //默认使用全局baseUrl
                 .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
-                .build();
+                //默认使用全局配置
+                .client(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
     }
 
     public static UploadRetrofit getInstance() {
@@ -48,7 +54,40 @@ public class UploadRetrofit {
     }
 
     public Retrofit getRetrofit() {
+        if (mRetrofit == null) {
+            mRetrofit = builder.build();
+        }
         return mRetrofit;
+    }
+
+    /**
+     * description 自定义baseUrl
+     *
+     * @param baseUrl 公共url
+     * @return UploadRetrofit
+     */
+    public UploadRetrofit setBaseUrl(String baseUrl) {
+        if (TextUtils.isEmpty(baseUrl)) {
+            builder.baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl());
+        } else {
+            builder.baseUrl(baseUrl);
+        }
+        return this;
+    }
+
+    /**
+     * description 自定义网络请求client
+     *
+     * @param client 网络请求client
+     * @return UploadRetrofit
+     */
+    public UploadRetrofit setOkHttpClient(OkHttpClient client) {
+        if (client == null) {
+            builder.client(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
+        } else {
+            builder.client(client);
+        }
+        return this;
     }
 
     /**
