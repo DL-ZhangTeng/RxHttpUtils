@@ -10,6 +10,9 @@ import com.zhangteng.rxhttputils.utils.SPUtils;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import io.reactivex.disposables.Disposable;
 
@@ -133,12 +136,20 @@ public class HttpUtils {
      */
     public void cancelSingleRequest(Object tag) {
         if (tag != null && disposables != null) {
-            for (Disposable disposable : disposables.keySet()) {
-                if (tag.equals(disposables.get(disposable)) && !disposable.isDisposed()) {
+            Set<Map.Entry<Disposable, Object>> set = disposables.entrySet();
+
+            Iterator<Map.Entry<Disposable, Object>> iterator = set.iterator();
+
+            while (iterator.hasNext()) {
+                Map.Entry<Disposable, Object> entry = iterator.next();
+                Disposable disposable = entry.getKey();
+
+                if (tag.equals(entry.getValue()) && !disposable.isDisposed()) {
                     disposable.dispose();
                 }
+
                 if (disposable.isDisposed()) {
-                    disposables.remove(disposable);
+                    iterator.remove();
                 }
             }
         }
