@@ -5,6 +5,10 @@ package com.zhangteng.rxhttputils.config;
  */
 public class SPConfig {
     /**
+     * 保存在手机里面的文件名
+     */
+    public static String FILE_NAME = "com.zhengteng.rxhttputils";
+    /**
      * 保存cookie
      */
     public static String COOKIE = "cookie";

@@ -6,12 +6,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zhangteng.rxhttputils.config.EncryptConfig;
+import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.http.OkHttpClient;
-import com.zhangteng.rxhttputils.utils.AESUtils;
 import com.zhangteng.rxhttputils.utils.DiskLruCacheUtils;
-import com.zhangteng.rxhttputils.utils.RSAUtils;
-import com.zhangteng.rxhttputils.utils.SPUtils;
+import com.zhangteng.utils.AESUtils;
+import com.zhangteng.utils.RSAUtils;
+import com.zhangteng.utils.SPUtilsKt;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -65,7 +66,7 @@ public class EncryptionInterceptor implements Interceptor {
                     && !jsonElement.isJsonNull()
                     && String.valueOf(EncryptConfig.SECRET_ERROR).equals(jsonElement.getAsString())
             ) {
-                SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, "");
+                SPUtilsKt.putToSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, "");
                 DiskLruCacheUtils.remove(EncryptConfig.publicKeyUrl);
                 DiskLruCacheUtils.flush();
                 secretRequest = buildRequest(request);
@@ -89,14 +90,14 @@ public class EncryptionInterceptor implements Interceptor {
      * @param request 原请求
      */
     protected Request buildRequest(Request request) throws IOException {
-        if (TextUtils.isEmpty((CharSequence) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, ""))) {
+        if (TextUtils.isEmpty((CharSequence) SPUtilsKt.getFromSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, ""))) {
             Response secretResponse = OkHttpClient.getInstance().getClient().newCall(new Request.Builder().url(EncryptConfig.publicKeyUrl).build()).execute();
             if (secretResponse.code() == 200) {
                 try {
                     String secretResponseString = Objects.requireNonNull(secretResponse.body()).string();
                     JsonObject jsonObject = new JsonParser().parse(secretResponseString).getAsJsonObject();
                     JsonElement jsonElement = jsonObject.get("result").getAsJsonObject().get("publicKey");
-                    SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, jsonElement.getAsString());
+                    SPUtilsKt.putToSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, jsonElement.getAsString());
                 } catch (NullPointerException exception) {
                     return null;
                 }
@@ -104,11 +105,11 @@ public class EncryptionInterceptor implements Interceptor {
                 return null;
             }
         }
-        String aesRequestKey = AESUtils.getKey();
+        String aesRequestKey = AESUtils.INSTANCE.getKey();
         okhttp3.Request.Builder requestBuilder = request.newBuilder();
         requestBuilder.removeHeader(EncryptConfig.SECRET);
         try {
-            requestBuilder.addHeader(EncryptConfig.SECRET, RSAUtils.encryptByPublicKey(aesRequestKey, (String) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, EncryptConfig.publicKey)));
+            requestBuilder.addHeader(EncryptConfig.SECRET, RSAUtils.INSTANCE.encryptByPublicKey(aesRequestKey, (String) SPUtilsKt.getFromSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, EncryptConfig.publicKey)));
         } catch (Exception e) {
             return null;
         }
@@ -116,7 +117,7 @@ public class EncryptionInterceptor implements Interceptor {
             String url = request.url().url().toString();
             String paramsBuilder = url.substring(url.indexOf("?") + 1);
             try {
-                String encryptParams = AESUtils.encrypt(paramsBuilder, aesRequestKey, aesRequestKey.substring(0, 16));
+                String encryptParams = AESUtils.INSTANCE.encrypt(paramsBuilder, aesRequestKey, aesRequestKey.substring(0, 16));
                 requestBuilder.url(url.substring(0, url.indexOf("?")) + "?" + encryptParams);
             } catch (Exception e) {
                 return null;
@@ -132,7 +133,7 @@ public class EncryptionInterceptor implements Interceptor {
                             for (int i = 0; i < formBody.size(); i++) {
                                 String value = formBody.encodedValue(i);
                                 if (!TextUtils.isEmpty(value)) {
-                                    String encryptParams = AESUtils.encrypt(value, aesRequestKey, aesRequestKey.substring(0, 16));
+                                    String encryptParams = AESUtils.INSTANCE.encrypt(value, aesRequestKey, aesRequestKey.substring(0, 16));
                                     bodyBuilder.addEncoded(formBody.encodedName(i), encryptParams);
                                 }
                             }
@@ -152,7 +153,7 @@ public class EncryptionInterceptor implements Interceptor {
                     String paramsRaw = buffer.readString(charset != null ? charset : Charset.defaultCharset());
                     if (!TextUtils.isEmpty(paramsRaw)) {
                         try {
-                            String encryptParams = AESUtils.encrypt(paramsRaw, aesRequestKey, aesRequestKey.substring(0, 16));
+                            String encryptParams = AESUtils.INSTANCE.encrypt(paramsRaw, aesRequestKey, aesRequestKey.substring(0, 16));
                             requestBuilder.post(RequestBody.create(requestBody.contentType(), encryptParams));
                         } catch (Exception e) {
                             return null;

@@ -5,7 +5,7 @@ import android.text.TextUtils;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.zhangteng.rxhttputils.utils.MD5Util;
+import com.zhangteng.utils.MD5Util;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -86,7 +86,7 @@ public class SignInterceptor implements Interceptor {
         sign.append("_timestamp").append(_timestamp);
         sign.append(appKey);
         requestBuilder.addHeader("_timestamp", String.valueOf(_timestamp));
-        requestBuilder.addHeader("_sign", MD5Util.md5Decode32(sign.toString()));
+        requestBuilder.addHeader("_sign", MD5Util.INSTANCE.md5Decode32(sign.toString()));
         return chain.proceed(requestBuilder.build());
     }
 }

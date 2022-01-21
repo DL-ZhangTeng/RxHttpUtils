@@ -2,7 +2,7 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.utils.SPUtils;
+import com.zhangteng.utils.SPUtilsKt;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -28,12 +28,12 @@ public class SaveCookieInterceptor implements Interceptor {
             for (String header : originalResponse.headers("Set-Cookie")) {
                 cookies.add(header);
             }
-            SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SPConfig.COOKIE, cookies);
+            SPUtilsKt.putToSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, SPConfig.COOKIE, cookies);
         }
         //获取服务器相应时间--用于计算倒计时的时间差
         if (!originalResponse.header("Date").isEmpty()) {
             long date = dateToStamp(originalResponse.header("Date"));
-            SPUtils.put(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SPConfig.DATE, date);
+            SPUtilsKt.putToSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, SPConfig.DATE, date);
         }
 
         return originalResponse;

@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.utils.SPUtils;
+import com.zhangteng.utils.SPUtilsKt;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -20,7 +20,7 @@ public class AddCookieInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request.Builder builder = chain.request().newBuilder();
-        HashSet<String> preferences = (HashSet<String>) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
+        HashSet<String> preferences = (HashSet<String>) SPUtilsKt.getFromSPForSet(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
         if (preferences != null) {
             for (String cookie : preferences) {
                 builder.addHeader("Cookie", cookie);

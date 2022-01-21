@@ -3,7 +3,6 @@ package com.zhangteng.app;
 import android.app.Dialog;
 import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -11,11 +10,10 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.observer.CommonObserver;
 import com.zhangteng.rxhttputils.observer.base.BaseObserver;
 import com.zhangteng.rxhttputils.transformer.LifecycleObservableTransformer;
 import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
-import com.zhangteng.rxhttputils.utils.ToastUtils;
+import com.zhangteng.utils.ToastUtilsKt;
 
 import io.reactivex.disposables.Disposable;
 
@@ -72,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void doOnNext(BaseResponse<LoginBean> loginBeanBaseResponse) {
-                        ToastUtils.show(MainActivity.this, loginBeanBaseResponse.getMsg(), Toast.LENGTH_LONG);
+                        ToastUtilsKt.showShortToast(MainActivity.this, loginBeanBaseResponse.getMsg());
                     }
 
                     @Override

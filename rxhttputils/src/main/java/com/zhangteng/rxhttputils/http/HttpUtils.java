@@ -6,7 +6,7 @@ import android.content.Context;
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.fileload.download.DownloadRetrofit;
 import com.zhangteng.rxhttputils.fileload.upload.UploadRetrofit;
-import com.zhangteng.rxhttputils.utils.SPUtils;
+import com.zhangteng.utils.SPUtilsKt;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -77,7 +77,7 @@ public class HttpUtils {
     }
 
     public HashSet<String> getCookie() {
-        HashSet<String> preferences = (HashSet<String>) SPUtils.get(context, SPUtils.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
+        HashSet<String> preferences = (HashSet<String>) SPUtilsKt.getFromSPForSet(context, SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
         return preferences;
     }
 

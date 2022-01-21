@@ -3,10 +3,11 @@ package com.zhangteng.rxhttputils.interceptor;
 import android.text.TextUtils;
 
 import com.zhangteng.rxhttputils.config.EncryptConfig;
+import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.utils.AESUtils;
-import com.zhangteng.rxhttputils.utils.RSAUtils;
-import com.zhangteng.rxhttputils.utils.SPUtils;
+import com.zhangteng.utils.AESUtils;
+import com.zhangteng.utils.RSAUtils;
+import com.zhangteng.utils.SPUtilsKt;
 
 import java.io.IOException;
 
@@ -34,10 +35,10 @@ public class DecryptionInterceptor implements Interceptor {
             if (EncryptConfig.SECRET.contains(name) && !TextUtils.isEmpty(responseHeaders.get(name))) {
                 try {
                     String encryptKey = responseHeaders.get(name);
-                    String aesResponseKey = RSAUtils.decryptByPublicKey(encryptKey, (String) SPUtils.get(HttpUtils.getInstance().getContext(), SPUtils.FILE_NAME, EncryptConfig.SECRET, EncryptConfig.publicKey));
+                    String aesResponseKey = RSAUtils.INSTANCE.decryptByPublicKey(encryptKey, (String) SPUtilsKt.getFromSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, EncryptConfig.publicKey));
                     MediaType mediaType = responseBody != null ? responseBody.contentType() : MediaType.parse("application/json;charset=UTF-8");
                     String responseStr = responseBody != null ? responseBody.string() : "";
-                    String rawResponseStr = AESUtils.decrypt(responseStr, aesResponseKey, aesResponseKey.substring(0, 16));
+                    String rawResponseStr = AESUtils.INSTANCE.decrypt(responseStr, aesResponseKey, aesResponseKey.substring(0, 16));
                     responseBuilder.body(ResponseBody.create(mediaType, rawResponseStr));
                     return responseBuilder.build();
                 } catch (Exception e) {

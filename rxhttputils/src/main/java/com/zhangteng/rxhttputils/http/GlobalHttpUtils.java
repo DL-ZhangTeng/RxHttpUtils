@@ -13,14 +13,15 @@ import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
-import com.zhangteng.rxhttputils.utils.LruCache;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
-import com.zhangteng.rxhttputils.utils.SSLUtils;
+import com.zhangteng.utils.LruCache;
+import com.zhangteng.utils.SSLUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Proxy;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
@@ -157,8 +158,8 @@ public class GlobalHttpUtils {
      * @return
      */
     public GlobalHttpUtils setSslSocketFactory() {
-        SSLUtils.SSLParams sslParams = SSLUtils.getSslSocketFactory();
-        getOkHttpClientBuilder().sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager);
+        SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory();
+        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 
@@ -169,8 +170,8 @@ public class GlobalHttpUtils {
      * @return
      */
     public GlobalHttpUtils setSslSocketFactory(InputStream... certificates) {
-        SSLUtils.SSLParams sslParams = SSLUtils.getSslSocketFactory(certificates);
-        getOkHttpClientBuilder().sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager);
+        SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory(certificates);
+        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 
@@ -183,8 +184,8 @@ public class GlobalHttpUtils {
      * @return
      */
     public GlobalHttpUtils setSslSocketFactory(InputStream bksFile, String password, InputStream... certificates) {
-        SSLUtils.SSLParams sslParams = SSLUtils.getSslSocketFactory(bksFile, password, certificates);
-        getOkHttpClientBuilder().sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager);
+        SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory(bksFile, password, certificates);
+        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 

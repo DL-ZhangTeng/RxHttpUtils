@@ -12,7 +12,7 @@ import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
-import com.zhangteng.rxhttputils.utils.SSLUtils;
+import com.zhangteng.utils.SSLUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Cache;
@@ -166,7 +167,7 @@ public class SingleHttpUtils {
      * @return
      */
     public SingleHttpUtils setSslSocketFactory() {
-        sslParams = SSLUtils.getSslSocketFactory();
+        sslParams = SSLUtils.INSTANCE.getSslSocketFactory();
         return this;
     }
 
@@ -177,7 +178,7 @@ public class SingleHttpUtils {
      * @return
      */
     public SingleHttpUtils setSslSocketFactory(InputStream... certificates) {
-        sslParams = SSLUtils.getSslSocketFactory(certificates);
+        sslParams = SSLUtils.INSTANCE.getSslSocketFactory(certificates);
         return this;
     }
 
@@ -190,7 +191,7 @@ public class SingleHttpUtils {
      * @return
      */
     public SingleHttpUtils setSslSocketFactory(InputStream bksFile, String password, InputStream... certificates) {
-        sslParams = SSLUtils.getSslSocketFactory(bksFile, password, certificates);
+        sslParams = SSLUtils.INSTANCE.getSslSocketFactory(bksFile, password, certificates);
         return this;
     }
 
@@ -313,7 +314,7 @@ public class SingleHttpUtils {
         singleOkHttpBuilder.connectTimeout(connectTimeout > 0 ? connectTimeout : 10, TimeUnit.SECONDS);
 
         if (sslParams != null) {
-            singleOkHttpBuilder.sslSocketFactory(sslParams.sSLSocketFactory, sslParams.trustManager);
+            singleOkHttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         }
 
         return singleOkHttpBuilder;

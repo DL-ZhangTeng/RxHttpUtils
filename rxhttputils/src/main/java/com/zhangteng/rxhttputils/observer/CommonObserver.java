@@ -7,7 +7,7 @@ import androidx.lifecycle.LifecycleOwner;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.lifecycle.HttpLifecycleEventObserver;
 import com.zhangteng.rxhttputils.observer.base.BaseObserver;
-import com.zhangteng.rxhttputils.utils.ToastUtils;
+import com.zhangteng.utils.ToastUtilsKt;
 
 import io.reactivex.disposables.Disposable;
 
@@ -81,7 +81,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
             mProgressDialog.dismiss();
         }
         if (!isHideToast()) {
-            ToastUtils.showShort(HttpUtils.getInstance().getContext(), errorMsg);
+            ToastUtilsKt.showShortToast(HttpUtils.getInstance().getContext(), errorMsg);
         }
         onFailure(errorMsg);
     }
