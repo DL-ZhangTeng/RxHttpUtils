@@ -11,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.1.6'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.0'
 //库所使用的三方
 implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
 implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
@@ -22,6 +22,7 @@ implementation 'com.squareup.retrofit2:converter-gson:2.8.1'
 implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
 implementation 'com.squareup.retrofit2:adapter-rxjava2:2.8.1'
 implementation 'com.squareup.okhttp3:logging-interceptor:4.5.0'
+implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.0'
 ```
 
 ## 属性
@@ -132,6 +133,10 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.2.0|使用base库utils|2022/1/21 at 20:14
+v1.1.9|ConcurrentModificationException报错|2022/1/2 at 21:28
+v1.1.8|下载文件配置|2021/12/21 at 23:42
+v1.1.7|文件上传支持自定义字段名|2021/10/28 at 17:06
 v1.1.6|请求取消方案修改：1、Lifecycle生命周期监听自动取消请求增加ObservableTransformer方案；2、请求结束自动从集合移除；3、页面销毁自动移除所有Tag对应的请求|2021/10/9 at 15:38
 v1.1.5|1.增加Lifecycle生命周期监听自动取消请求；2.增加通过tag取消请求 |2021/9/22 at 16:43
 v1.1.4| 1.createService时全部使用RetrofitServiceProxyHandler;2.上传下载单例bug|2021/7/15 at 15:36
