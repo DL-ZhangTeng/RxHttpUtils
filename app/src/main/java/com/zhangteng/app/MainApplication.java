@@ -41,8 +41,6 @@ public class MainApplication extends Application {
                 .setHeaders(headers -> {
                     if (headers == null) {
                         headers = new HashMap<>();
-                    }else {
-                        headers.clear();
                     }
                     headers.put("version", BuildConfig.VERSION_CODE);
                     headers.put("os", "android");

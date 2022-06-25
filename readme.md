@@ -11,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.0'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.1'
 //库所使用的三方
 implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
 implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
@@ -30,7 +30,7 @@ implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.0'
 --- | -----
 setBaseUrl| ConfigGlobalHttpUtils()全局的BaseUrl；ConfigSingleInstance()单独设置BaseUrl
 setCache| 开启缓存策略
-setHeaders| 全局的请求头信息，更新请求头时不需要重新设置，对Map元素进行移除添加即可
+setHeaders| 全局的请求头信息，设置静态请求头：更新请求头时不需要重新设置，对Map元素进行移除添加即可；设置动态请求头：如token等需要根据登录状态实时变化的请求头参数，最小支持api 24
 setSign| 全局验签，appKey与后端匹配即可，具体规则参考：https://blog.csdn.net/duoluo9/article/details/105214983
 setEnAndDecryption| 全局加解密(AES+RSA)。1、公钥请求路径HttpUrl.get(BuildConfig.HOST + "/getPublicKey")；2、公钥响应结果{"result": {"publicKey": ""},"message": "查询成功!","status": 100}
 setCookie|全局持久话cookie,保存本地每次都会携带在header中
@@ -52,8 +52,37 @@ setLog| 全局是否打开请求log日志
                 .setBaseUrl("http://**/")
                 //开启缓存策略
                 .setCache(true)
+                //全局的静态请求头信息
+                //.setHeaders(headersMap)
                 //全局的请求头信息
-                //.setHeaders(headerMaps)
+                //.setHeaders(headersMap, headers -> {
+                //  if (headers == null) {
+                //      headers = new HashMap<>();
+                //  }
+                //  boolean isLogin = BuildConfig.DEBUG;
+                //  if (isLogin) {
+                //      headers.put("Authorization", "Bearer " + "token");
+                //  } else {
+                //      headers.remove("Authorization");
+                //  }
+                //  return headers;
+                //})
+                //全局的动态请求头信息
+                .setHeaders(headers -> {
+                    if (headers == null) {
+                        headers = new HashMap<>();
+                    }
+                    headers.put("version", BuildConfig.VERSION_CODE);
+                    headers.put("os", "android");
+
+                    boolean isLogin = BuildConfig.DEBUG;
+                    if (isLogin) {
+                        headers.put("Authorization", "Bearer " + "token");
+                    } else {
+                        headers.remove("Authorization");
+                    }
+                    return headers;
+                })
                 //全局持久话cookie,保存本地每次都会携带在header中
                 .setCookie(false)
                 //全局ssl证书认证
