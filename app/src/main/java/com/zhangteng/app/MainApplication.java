@@ -4,22 +4,57 @@ import android.app.Application;
 
 import com.zhangteng.rxhttputils.http.HttpUtils;
 
+import java.util.HashMap;
+
 import okhttp3.OkHttpClient;
 
 public class MainApplication extends Application {
+
     @Override
     public void onCreate() {
         super.onCreate();
+
         HttpUtils.init(this);
         //全局网络配置
         HttpUtils.getInstance()
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
-                .setBaseUrl("http://**/")
+                .setBaseUrl("https://**/")
                 //开启缓存策略
                 .setCache(true)
+                //全局的静态请求头信息
+//                .setHeaders(headers)
                 //全局的请求头信息
-                //.setHeaders(headerMaps)
+//                .setHeaders(headers, headers -> {
+//                    if (headers == null) {
+//                        headers = new HashMap<>();
+//                    }
+//                    boolean isLogin = BuildConfig.DEBUG;
+//                    if (isLogin) {
+//                        headers.put("Authorization", "Bearer " + "token");
+//                    } else {
+//                        headers.remove("Authorization");
+//                    }
+//                    return headers;
+//                })
+                //全局的动态请求头信息
+                .setHeaders(headers -> {
+                    if (headers == null) {
+                        headers = new HashMap<>();
+                    }else {
+                        headers.clear();
+                    }
+                    headers.put("version", BuildConfig.VERSION_CODE);
+                    headers.put("os", "android");
+
+                    boolean isLogin = BuildConfig.DEBUG;
+                    if (isLogin) {
+                        headers.put("Authorization", "Bearer " + "token");
+                    } else {
+                        headers.remove("Authorization");
+                    }
+                    return headers;
+                })
                 //全局持久话cookie,保存本地每次都会携带在header中
                 .setCookie(false)
                 //全局ssl证书认证

@@ -10,12 +10,8 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.observer.base.BaseObserver;
-import com.zhangteng.rxhttputils.transformer.LifecycleObservableTransformer;
+import com.zhangteng.rxhttputils.observer.CommonObserver;
 import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
-import com.zhangteng.utils.ToastUtilsKt;
-
-import io.reactivex.disposables.Disposable;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,54 +30,54 @@ public class MainActivity extends AppCompatActivity {
         ((AnimationDrawable) mImageView.getDrawable()).start();
         mProgressDialog.setContentView(view);
 
-//        HttpUtils.getInstance()
-//                .ConfigGlobalHttpUtils()
-//                .createService(ApiService.class)
-//                .loginPwd("admin", "admin")
-//                .compose(new ObservableTransformer<>(mProgressDialog))
-//                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
-//                    @Override
-//                    protected void onFailure(String errorMsg) {
-//
-//                    }
-//
-//                    @Override
-//                    protected void onSuccess(BaseResponse<LoginBean> bean) {
-//                        ToastUtils.show(MainActivity.this, bean.getMsg(), Toast.LENGTH_LONG);
-//                    }
-//                });
         HttpUtils.getInstance()
-                .ConfigSingleInstance()
-                .setBaseUrl("http://**/")
+                .ConfigGlobalHttpUtils()
                 .createService(ApiService.class)
                 .loginPwd("admin", "admin")
-                .compose(new LifecycleObservableTransformer<>(MainActivity.this))
                 .compose(new ProgressDialogObservableTransformer<>(mProgressDialog))
-                .subscribe(new BaseObserver<BaseResponse<LoginBean>>() {
+                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
                     @Override
-                    public void doOnSubscribe(Disposable d) {
+                    protected void onFailure(String errorMsg) {
 
                     }
 
                     @Override
-                    public void doOnError(String errorMsg) {
-
-                    }
-
-                    @Override
-                    public void doOnNext(BaseResponse<LoginBean> loginBeanBaseResponse) {
-                        ToastUtilsKt.showShortToast(MainActivity.this, loginBeanBaseResponse.getMsg());
-                    }
-
-                    @Override
-                    public void doOnCompleted() {
-
+                    protected void onSuccess(BaseResponse<LoginBean> bean) {
+                        Toast.makeText(MainActivity.this, bean.getMsg(), Toast.LENGTH_LONG);
                     }
                 });
+//        HttpUtils.getInstance()
+//                .ConfigSingleInstance()
+//                .setBaseUrl("https://**/")
+//                .createService(ApiService.class)
+//                .loginPwd("admin", "admin")
+//                .compose(new LifecycleObservableTransformer<>(MainActivity.this))
+//                .compose(new ProgressDialogObservableTransformer<>(mProgressDialog))
+//                .subscribe(new BaseObserver<BaseResponse<LoginBean>>() {
+//                    @Override
+//                    public void doOnSubscribe(Disposable d) {
+//
+//                    }
+//
+//                    @Override
+//                    public void doOnError(String errorMsg) {
+//
+//                    }
+//
+//                    @Override
+//                    public void doOnNext(BaseResponse<LoginBean> loginBeanBaseResponse) {
+//                        ToastUtilsKt.showShortToast(MainActivity.this, loginBeanBaseResponse.getMsg());
+//                    }
+//
+//                    @Override
+//                    public void doOnCompleted() {
+//
+//                    }
+//                });
 
 //        HttpUtils.getInstance()
 //                .ConfigSingleInstance()
-//                .setBaseUrl("http://**/")
+//                .setBaseUrl("https://**/")
 //                .createService(ApiService.class)
 //                .loginPwd("admin", "admin")
 //                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
