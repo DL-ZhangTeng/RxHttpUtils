@@ -5,10 +5,12 @@ import android.app.Application;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import okhttp3.OkHttpClient;
 
 public class MainApplication extends Application {
+    private Map<String, Object> headersMap = new HashMap<>();
 
     @Override
     public void onCreate() {
@@ -23,9 +25,9 @@ public class MainApplication extends Application {
                 //开启缓存策略
                 .setCache(true)
                 //全局的静态请求头信息
-//                .setHeaders(headers)
+                .setHeaders(headersMap)
                 //全局的请求头信息
-//                .setHeaders(headers, headers -> {
+//                .setHeaders(headersMap, headers -> {
 //                    if (headers == null) {
 //                        headers = new HashMap<>();
 //                    }
@@ -38,21 +40,21 @@ public class MainApplication extends Application {
 //                    return headers;
 //                })
                 //全局的动态请求头信息
-                .setHeaders(headers -> {
-                    if (headers == null) {
-                        headers = new HashMap<>();
-                    }
-                    headers.put("version", BuildConfig.VERSION_CODE);
-                    headers.put("os", "android");
-
-                    boolean isLogin = BuildConfig.DEBUG;
-                    if (isLogin) {
-                        headers.put("Authorization", "Bearer " + "token");
-                    } else {
-                        headers.remove("Authorization");
-                    }
-                    return headers;
-                })
+//                .setHeaders(headers -> {
+//                    if (headers == null) {
+//                        headers = new HashMap<>();
+//                    }
+//                    headers.put("version", BuildConfig.VERSION_CODE);
+//                    headers.put("os", "android");
+//
+//                    boolean isLogin = BuildConfig.DEBUG;
+//                    if (isLogin) {
+//                        headers.put("Authorization", "Bearer " + "token");
+//                    } else {
+//                        headers.remove("Authorization");
+//                    }
+//                    return headers;
+//                })
                 //全局持久话cookie,保存本地每次都会携带在header中
                 .setCookie(false)
                 //全局ssl证书认证

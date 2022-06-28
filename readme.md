@@ -17,12 +17,12 @@ implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
 implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
 implementation "io.reactivex.rxjava2:rxjava:2.2.21"
 implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-implementation 'com.squareup.retrofit2:retrofit:2.8.1'
-implementation 'com.squareup.retrofit2:converter-gson:2.8.1'
+implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
-implementation 'com.squareup.retrofit2:adapter-rxjava2:2.8.1'
-implementation 'com.squareup.okhttp3:logging-interceptor:4.5.0'
-implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.0'
+implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
+implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.5'
 ```
 
 ## 属性
@@ -162,6 +162,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.2.1|增加动态请求头添加方法|2022/6/25 at 16:46
 v1.2.0|使用base库utils|2022/1/21 at 20:14
 v1.1.9|ConcurrentModificationException报错|2022/1/2 at 21:28
 v1.1.8|下载文件配置|2021/12/21 at 23:42
