@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import okhttp3.Cache;
+import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
@@ -64,6 +65,16 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setBaseUrl(String baseUrl) {
         getRetrofitBuilder().baseUrl(baseUrl);
+        return this;
+    }
+
+    /**
+     * description 设置域名解析服务器
+     *
+     * @param dns 域名解析服务器
+     */
+    public GlobalHttpUtils setDns(Dns dns) {
+        getOkHttpClientBuilder().dns(dns);
         return this;
     }
 

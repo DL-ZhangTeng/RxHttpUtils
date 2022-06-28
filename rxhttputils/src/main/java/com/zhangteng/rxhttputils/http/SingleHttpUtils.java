@@ -29,6 +29,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import okhttp3.Cache;
+import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
@@ -42,6 +43,7 @@ import retrofit2.Retrofit;
 public class SingleHttpUtils {
     private static SingleHttpUtils instance;
     private String baseUrl;
+    private Dns dns;
 
     private Map<String, Object> headerMaps = new HashMap<>();
     private Function<Map<String, Object>, Map<String, Object>> headersFunction;
@@ -80,6 +82,16 @@ public class SingleHttpUtils {
      */
     public SingleHttpUtils setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+        return this;
+    }
+
+    /**
+     * description 设置域名解析服务器
+     *
+     * @param dns 域名解析服务器
+     */
+    public SingleHttpUtils setDns(Dns dns) {
+        this.dns = dns;
         return this;
     }
 
@@ -341,6 +353,10 @@ public class SingleHttpUtils {
         OkHttpClient.Builder singleOkHttpBuilder = new OkHttpClient.Builder();
 
         singleOkHttpBuilder.retryOnConnectionFailure(true);
+
+        if (dns != null) {
+            singleOkHttpBuilder.dns(dns);
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             singleOkHttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps, headersFunction));
