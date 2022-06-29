@@ -12,23 +12,24 @@ allprojects {
 }
 
 implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.1'
-//库所使用的三方
-implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
-implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
-implementation "io.reactivex.rxjava2:rxjava:2.2.21"
-implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
-implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
-implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
-implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
-implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.5'
+    //库所使用的三方
+    implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
+    implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
+    implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.5'
 ```
 
 ## 属性
 属性名| 描述
 --- | -----
 setBaseUrl| ConfigGlobalHttpUtils()全局的BaseUrl；ConfigSingleInstance()单独设置BaseUrl
+setDns| 自定义域名解析
 setCache| 开启缓存策略
 setHeaders| 全局的请求头信息，设置静态请求头：更新请求头时不需要重新设置，对Map元素进行移除添加即可；设置动态请求头：如token等需要根据登录状态实时变化的请求头参数，最小支持api 24
 setSign| 全局验签，appKey与后端匹配即可，具体规则参考：https://blog.csdn.net/duoluo9/article/details/105214983
@@ -42,6 +43,13 @@ setLog| 全局是否打开请求log日志
 ## 使用
 ```java
  public class MainApplication extends Application {
+     private static MainApplication mainApplication;
+     private final Map<String, Object> headersMap = new HashMap<>();
+
+     public static MainApplication getInstance() {
+         return mainApplication;
+     }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -50,6 +58,8 @@ setLog| 全局是否打开请求log日志
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
                 .setBaseUrl("http://**/")
+                //设置自定义域名解析
+                .setDns(HttpDns.getInstance())
                 //开启缓存策略
                 .setCache(true)
                 //全局的静态请求头信息
@@ -162,7 +172,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
-v1.2.1|增加动态请求头添加方法|2022/6/25 at 16:46
+v1.2.1|增加动态请求头添加方法&自定义域名解析|2022/6/25 at 16:46
 v1.2.0|使用base库utils|2022/1/21 at 20:14
 v1.1.9|ConcurrentModificationException报错|2022/1/2 at 21:28
 v1.1.8|下载文件配置|2021/12/21 at 23:42

@@ -10,18 +10,25 @@ import java.util.Map;
 import okhttp3.OkHttpClient;
 
 public class MainApplication extends Application {
-    private Map<String, Object> headersMap = new HashMap<>();
+    private static MainApplication mainApplication;
+    private final Map<String, Object> headersMap = new HashMap<>();
+
+    public static MainApplication getInstance() {
+        return mainApplication;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-
+        mainApplication = this;
         HttpUtils.init(this);
         //全局网络配置
         HttpUtils.getInstance()
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
                 .setBaseUrl("https://**/")
+                //设置自定义域名解析
+                .setDns(HttpDns.getInstance())
                 //开启缓存策略
                 .setCache(true)
                 //全局的静态请求头信息
