@@ -383,7 +383,7 @@ public class SingleHttpUtils {
         if (isShowLog) {
             HttpLoggingInterceptor loggingInterceptor;
             if (logger == null) {
-                loggingInterceptor = new HttpLoggingInterceptor(message -> Log.e("HttpUtils", message));
+                loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
             } else {
                 loggingInterceptor = new HttpLoggingInterceptor(logger);
             }
