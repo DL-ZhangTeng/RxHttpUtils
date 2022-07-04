@@ -1,8 +1,14 @@
 package com.zhangteng.rxhttputils.exception;
 
+import android.os.Build;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
+
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
+import com.zhangteng.utils.IException;
 
 import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONException;
@@ -13,22 +19,33 @@ import java.net.ConnectException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.text.ParseException;
+import java.util.Objects;
 
 import retrofit2.HttpException;
 
-public class ApiException extends Exception {
+public class ApiException extends IException {
 
-    private final int code;
     private String message;
 
-    public ApiException(Throwable throwable, int code) {
-        super(throwable);
-        this.code = code;
-        this.message = throwable.getMessage();
+    public ApiException(@Nullable String message) {
+        super(message);
+        this.message = message;
     }
 
-    public int getCode() {
-        return code;
+    public ApiException(@Nullable String message, @Nullable Throwable cause) {
+        super(message, cause);
+        this.message = message;
+    }
+
+    public ApiException(@Nullable Throwable cause) {
+        super(cause);
+        this.message = cause != null ? cause.getMessage() : null;
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    public ApiException(@Nullable String message, @Nullable Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+        super(message, cause, enableSuppression, writableStackTrace);
+        this.message = message;
     }
 
     @Override
@@ -36,64 +53,69 @@ public class ApiException extends Exception {
         return message;
     }
 
-    public static ApiException handleException(Throwable e) {
-        ApiException ex;
+    @NonNull
+    @Override
+    public IException handleException() {
+        Throwable e = getCause();
         if (e instanceof HttpException) {
             HttpException httpException = (HttpException) e;
-            ex = new ApiException(httpException, httpException.code());
             try {
-                ex.message = httpException.response().errorBody().string();
+                setCode(httpException.code());
+                message = Objects.requireNonNull(Objects.requireNonNull(httpException.response()).errorBody()).string();
             } catch (IOException e1) {
                 e1.printStackTrace();
-                ex.message = e1.getMessage();
+                message = e1.getMessage();
             }
-            return ex;
+            return this;
         } else if (e instanceof SocketTimeoutException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接超时，请检查您的网络状态后重试！";
-            return ex;
+            setCode(ERROR.TIMEOUT_ERROR);
+            message = "网络连接超时，请检查您的网络状态后重试！";
+            return this;
         } else if (e instanceof ConnectException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接异常，请检查您的网络状态后重试！";
-            return ex;
+            setCode(ERROR.TIMEOUT_ERROR);
+            message = "网络连接异常，请检查您的网络状态后重试！";
+            return this;
         } else if (e instanceof ConnectTimeoutException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接超时，请检查您的网络状态后重试！";
-            return ex;
+            setCode(ERROR.TIMEOUT_ERROR);
+            message = "网络连接超时，请检查您的网络状态后重试！";
+            return this;
         } else if (e instanceof UnknownHostException) {
-            ex = new ApiException(e, ERROR.TIMEOUT_ERROR);
-            ex.message = "网络连接异常，请检查您的网络状态后重试！";
-            return ex;
+            setCode(ERROR.TIMEOUT_ERROR);
+            message = "网络连接异常，请检查您的网络状态后重试！";
+            return this;
         } else if (e instanceof NullPointerException) {
-            ex = new ApiException(e, ERROR.NULL_POINTER_EXCEPTION);
-            ex.message = "空指针异常";
-            return ex;
+            setCode(ERROR.NULL_POINTER_EXCEPTION);
+            message = "空指针异常";
+            return this;
         } else if (e instanceof javax.net.ssl.SSLHandshakeException) {
-            ex = new ApiException(e, ERROR.SSL_ERROR);
-            ex.message = "证书验证失败";
-            return ex;
+            setCode(ERROR.SSL_ERROR);
+            message = "证书验证失败";
+            return this;
         } else if (e instanceof ClassCastException) {
-            ex = new ApiException(e, ERROR.CAST_ERROR);
-            ex.message = "类型转换错误";
-            return ex;
+            setCode(ERROR.CAST_ERROR);
+            message = "类型转换错误";
+            return this;
         } else if (e instanceof JsonParseException
                 || e instanceof JSONException
-                || e instanceof JsonSyntaxException
                 || e instanceof JsonSerializer
                 || e instanceof NotSerializableException
                 || e instanceof ParseException) {
-            ex = new ApiException(e, ERROR.PARSE_ERROR);
-            ex.message = "解析错误";
-            return ex;
+            setCode(ERROR.PARSE_ERROR);
+            message = "解析错误";
+            return this;
         } else if (e instanceof IllegalStateException) {
-            ex = new ApiException(e, ERROR.ILLEGAL_STATE_ERROR);
-            ex.message = e.getMessage();
-            return ex;
+            setCode(ERROR.ILLEGAL_STATE_ERROR);
+            message = e.getMessage();
+            return this;
         } else {
-            ex = new ApiException(e, ERROR.UNKNOWN);
-            ex.message = "未知错误";
-            return ex;
+            setCode(ERROR.UNKNOWN);
+            message = "未知错误";
+            return this;
         }
+    }
+
+    public static IException handleException(Throwable e) {
+        return new ApiException(e).handleException();
     }
 
     /**
