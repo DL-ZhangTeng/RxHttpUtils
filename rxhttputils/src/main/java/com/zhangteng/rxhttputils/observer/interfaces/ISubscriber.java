@@ -9,7 +9,7 @@ public interface ISubscriber<T> {
 
     void doOnSubscribe(Disposable d);
 
-    void doOnError(String errorMsg);
+    void doOnError(Throwable e);
 
     void doOnNext(T t);
 

@@ -5,13 +5,15 @@ import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.observer.CommonObserver;
-import com.zhangteng.rxhttputils.transformer.ProgressDialogObservableTransformer;
+import com.zhangteng.utils.ToastUtilsKt;
+
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,22 +32,22 @@ public class MainActivity extends AppCompatActivity {
         ((AnimationDrawable) mImageView.getDrawable()).start();
         mProgressDialog.setContentView(view);
 
-        HttpUtils.getInstance()
-                .ConfigGlobalHttpUtils()
-                .createService(ApiService.class)
-                .loginPwd("admin", "admin")
-                .compose(new ProgressDialogObservableTransformer<>(mProgressDialog))
-                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
-                    @Override
-                    protected void onFailure(String errorMsg) {
-
-                    }
-
-                    @Override
-                    protected void onSuccess(BaseResponse<LoginBean> bean) {
-                        Toast.makeText(MainActivity.this, bean.getMsg(), Toast.LENGTH_LONG);
-                    }
-                });
+//        HttpUtils.getInstance()
+//                .ConfigGlobalHttpUtils()
+//                .createService(ApiService.class)
+//                .loginPwd("admin", "admin")
+//                .compose(new ProgressDialogObservableTransformer<>(mProgressDialog))
+//                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
+//                    @Override
+//                    protected void onFailure(String errorMsg) {
+//
+//                    }
+//
+//                    @Override
+//                    protected void onSuccess(BaseResponse<LoginBean> bean) {
+//                        Toast.makeText(MainActivity.this, bean.getMsg(), Toast.LENGTH_LONG);
+//                    }
+//                });
 //        HttpUtils.getInstance()
 //                .ConfigSingleInstance()
 //                .setBaseUrl("https://**/")
@@ -60,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //
 //                    @Override
-//                    public void doOnError(String errorMsg) {
+//                    public void doOnError(Throwable e) {
 //
 //                    }
 //
@@ -75,22 +77,26 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //                });
 
-//        HttpUtils.getInstance()
-//                .ConfigSingleInstance()
-//                .setBaseUrl("https://**/")
-//                .createService(ApiService.class)
-//                .loginPwd("admin", "admin")
-//                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
-//                    @Override
-//                    protected void onFailure(String errorMsg) {
-//
-//                    }
-//
-//                    @Override
-//                    protected void onSuccess(BaseResponse<LoginBean> loginBeanBaseResponse) {
-//                        ToastUtils.show(MainActivity.this, loginBeanBaseResponse.getMsg(), Toast.LENGTH_LONG);
-//                    }
-//                });
+        HttpUtils.getInstance()
+                .ConfigSingleInstance()
+                .setBaseUrl("https://**/")
+                .createService(ApiService.class)
+                .loginPwd("admin", "admin")
+                .subscribeOn(Schedulers.io())
+                .doOnSubscribe(disposable -> mProgressDialog.show())
+                .subscribeOn(AndroidSchedulers.mainThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new CommonObserver<BaseResponse<LoginBean>>(mProgressDialog) {
+                    @Override
+                    protected void onFailure(String errorMsg) {
+
+                    }
+
+                    @Override
+                    protected void onSuccess(BaseResponse<LoginBean> loginBeanBaseResponse) {
+                        ToastUtilsKt.showShortToast(MainActivity.this, loginBeanBaseResponse.getMsg());
+                    }
+                });
     }
 
     @Override

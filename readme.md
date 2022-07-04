@@ -11,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.1'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.2'
     //库所使用的三方
     implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
     implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
@@ -129,13 +129,13 @@ setLog| 全局是否打开请求log日志
                     }
 
                     @Override
-                    public void doOnError(String errorMsg) {
+                    public void doOnError(Throwable e) {
 
                     }
 
                     @Override
                     public void doOnNext(BaseResponse<LoginBean> loginBeanBaseResponse) {
-                        ToastUtils.show(MainActivity.this, loginBeanBaseResponse.getMsg(), Toast.LENGTH_LONG);
+
                     }
 
                     @Override
@@ -146,10 +146,15 @@ setLog| 全局是否打开请求log日志
                 
 //使用生命周期监听自动取消请求、加载中动画自动处理（CommonObserver方案）
 //        HttpUtils.getInstance()
-//                .ConfigGlobalHttpUtils()
+//                .ConfigSingleInstance()
+//                .setBaseUrl("https://**/")
 //                .createService(ApiService.class)
 //                .loginPwd("admin", "admin")
-//                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
+//                .subscribeOn(Schedulers.io())
+//                .doOnSubscribe(disposable -> mProgressDialog.show())
+//                .subscribeOn(AndroidSchedulers.mainThread())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(new CommonObserver<BaseResponse<LoginBean>>(mProgressDialog) {
 //                    @Override
 //                    protected void onFailure(String errorMsg) {
 //
@@ -157,7 +162,7 @@ setLog| 全局是否打开请求log日志
 //
 //                    @Override
 //                    protected void onSuccess(BaseResponse<LoginBean> loginBeanBaseResponse) {
-//                        ToastUtils.show(MainActivity.this, loginBeanBaseResponse.getMsg(), Toast.LENGTH_LONG);
+//                        ToastUtilsKt.showShortToast(MainActivity.this, loginBeanBaseResponse.getMsg());
 //                    }
 //                });
 
@@ -172,6 +177,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.2.2|使用util库中的IException解决循环依赖&异常处理放入子类实现，方便调试异常|2022/7/4 at 17:50
 v1.2.1|增加动态请求头添加方法&自定义域名解析|2022/6/25 at 16:46
 v1.2.0|使用base库utils|2022/1/21 at 20:14
 v1.1.9|ConcurrentModificationException报错|2022/1/2 at 21:28

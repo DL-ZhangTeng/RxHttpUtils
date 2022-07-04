@@ -1,7 +1,6 @@
 package com.zhangteng.rxhttputils.observer.base;
 
 
-import com.zhangteng.rxhttputils.exception.ApiException;
 import com.zhangteng.rxhttputils.observer.interfaces.ISubscriber;
 
 import io.reactivex.Observer;
@@ -28,8 +27,7 @@ public abstract class BaseObserver<T> implements Observer<T>, ISubscriber<T> {
 
     @Override
     public void onError(Throwable e) {
-        String error = ApiException.handleException(e).getMessage();
-        doOnError(error);
+        doOnError(e);
     }
 
     @Override

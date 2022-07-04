@@ -3,6 +3,8 @@ package com.zhangteng.rxhttputils.fileload.download;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 
+import com.zhangteng.utils.IException;
+
 import java.io.IOException;
 
 import io.reactivex.Observable;
@@ -63,8 +65,8 @@ public abstract class DownloadObserver extends BaseDownloadObserver {
 
 
     @Override
-    protected void doOnError(String errorMsg) {
-        onFailure(errorMsg);
+    protected void doOnError(Throwable e) {
+        onFailure(IException.Companion.handleException(e).getMessage());
     }
 
     @Override
@@ -100,7 +102,7 @@ public abstract class DownloadObserver extends BaseDownloadObserver {
                             });
 
                         } catch (IOException e) {
-                            doOnError(e.getMessage());
+                            doOnError(e);
                         }
                     }
                 });
