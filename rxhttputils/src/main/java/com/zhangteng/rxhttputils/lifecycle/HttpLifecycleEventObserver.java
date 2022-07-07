@@ -17,7 +17,9 @@ public final class HttpLifecycleEventObserver implements LifecycleEventObserver 
     /**
      * 绑定组件的生命周期
      *
-     * @param lifecycleOwner 请传入 AppCompatActivity 或者 AndroidX.Fragment 子类 如需传入其他对象请参考以下两个类{@link ActivityLifecycle}{@link ApplicationLifecycle}
+     * @param lifecycleOwner 请传入 AppCompatActivity 或者 AndroidX.Fragment 子类
+     *                       如需传入其他对象可继承{@link androidx.lifecycle.LifecycleOwner }
+     *                       请参考以下两个类{@link androidx.lifecycle.LifecycleService }{@link androidx.lifecycle.ProcessLifecycleOwner}
      */
     public static void bind(LifecycleOwner lifecycleOwner) {
         lifecycleOwner.getLifecycle().addObserver(new HttpLifecycleEventObserver());
