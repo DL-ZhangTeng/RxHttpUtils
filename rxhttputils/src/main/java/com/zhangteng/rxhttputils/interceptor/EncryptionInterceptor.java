@@ -7,8 +7,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.config.SPConfig;
+import com.zhangteng.rxhttputils.http.GlobalHttpUtils;
 import com.zhangteng.rxhttputils.http.HttpUtils;
-import com.zhangteng.rxhttputils.http.OkHttpClient;
 import com.zhangteng.rxhttputils.utils.DiskLruCacheUtils;
 import com.zhangteng.utils.AESUtils;
 import com.zhangteng.utils.RSAUtils;
@@ -91,7 +91,7 @@ public class EncryptionInterceptor implements Interceptor {
      */
     protected Request buildRequest(Request request) throws IOException {
         if (TextUtils.isEmpty((CharSequence) SPUtilsKt.getFromSP(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, EncryptConfig.SECRET, ""))) {
-            Response secretResponse = OkHttpClient.getInstance().getClient().newCall(new Request.Builder().url(EncryptConfig.publicKeyUrl).build()).execute();
+            Response secretResponse = GlobalHttpUtils.getInstance().getOkHttpClient().newCall(new Request.Builder().url(EncryptConfig.publicKeyUrl).build()).execute();
             if (secretResponse.code() == 200) {
                 try {
                     String secretResponseString = Objects.requireNonNull(secretResponse.body()).string();

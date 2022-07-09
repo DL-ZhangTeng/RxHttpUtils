@@ -3,7 +3,7 @@ package com.zhangteng.rxhttputils.utils;
 import android.os.Environment;
 import android.util.Log;
 
-import com.zhangteng.rxhttputils.http.OkHttpClient;
+import com.zhangteng.rxhttputils.http.GlobalHttpUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +21,7 @@ public class DiskLruCacheUtils {
     private static DiskLruCache mDiskLruCache;
 
     private static void createDiskLruCache() {
-        Cache cache = OkHttpClient.getInstance().getClient().cache();
+        Cache cache = GlobalHttpUtils.getInstance().getOkHttpClient().cache();
         Class<?> clazz = Cache.class;
         try {
             Field cacheField = clazz.getDeclaredField("cache");

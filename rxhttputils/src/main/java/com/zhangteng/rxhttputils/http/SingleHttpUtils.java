@@ -86,16 +86,6 @@ public class SingleHttpUtils {
     }
 
     /**
-     * description 设置域名解析服务器
-     *
-     * @param dns 域名解析服务器
-     */
-    public SingleHttpUtils setDns(Dns dns) {
-        this.dns = dns;
-        return this;
-    }
-
-    /**
      * 局部设置Converter.Factory,默认GsonConverterFactory.create()
      */
     public SingleHttpUtils addConverterFactory(Converter.Factory factory) {
@@ -115,6 +105,21 @@ public class SingleHttpUtils {
         return this;
     }
 
+    /**
+     * description 设置域名解析服务器
+     *
+     * @param dns 域名解析服务器
+     */
+    public SingleHttpUtils setDns(Dns dns) {
+        this.dns = dns;
+        return this;
+    }
+
+    /**
+     * description 设置请求头
+     *
+     * @param headerMaps 请求头设置的静态参数
+     */
     public SingleHttpUtils setHeaders(Map<String, Object> headerMaps) {
         this.headerMaps = headerMaps;
         return this;
@@ -310,7 +315,7 @@ public class SingleHttpUtils {
 
         if (converterFactories.isEmpty()) {
             //获取全局的对象重新设置
-            List<Converter.Factory> listConverterFactory = RetrofitClient.getInstance().getRetrofit().converterFactories();
+            List<Converter.Factory> listConverterFactory = GlobalHttpUtils.getInstance().getRetrofit().converterFactories();
             for (Converter.Factory factory : listConverterFactory) {
                 singleRetrofitBuilder.addConverterFactory(factory);
             }
@@ -322,7 +327,7 @@ public class SingleHttpUtils {
 
         if (adapterFactories.isEmpty()) {
             //获取全局的对象重新设置
-            List<CallAdapter.Factory> listAdapterFactory = RetrofitClient.getInstance().getRetrofit().callAdapterFactories();
+            List<CallAdapter.Factory> listAdapterFactory = GlobalHttpUtils.getInstance().getRetrofit().callAdapterFactories();
             for (CallAdapter.Factory factory : listAdapterFactory) {
                 singleRetrofitBuilder.addCallAdapterFactory(factory);
             }
@@ -335,7 +340,7 @@ public class SingleHttpUtils {
 
 
         if (baseUrl == null || baseUrl.isEmpty()) {
-            singleRetrofitBuilder.baseUrl(RetrofitClient.getInstance().getRetrofit().baseUrl());
+            singleRetrofitBuilder.baseUrl(GlobalHttpUtils.getInstance().getRetrofit().baseUrl());
         } else {
             singleRetrofitBuilder.baseUrl(baseUrl);
         }

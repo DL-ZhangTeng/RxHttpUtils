@@ -32,19 +32,55 @@ import okhttp3.Cache;
 import okhttp3.Dns;
 import okhttp3.HttpUrl;
 import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.CallAdapter;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 /**
  * Created by swing on 2018/4/24.
  */
 public class GlobalHttpUtils {
     private static GlobalHttpUtils instance;
+
+    /**
+     * description: 全局okhttpBuilder，保证使用一个网络实例
+     */
+    private final okhttp3.OkHttpClient.Builder okhttpBuilder;
+    /**
+     * description: 全局retrofitBuilder，保证使用一个网络实例
+     */
+    private final Retrofit.Builder retrofitBuilder;
+    /**
+     * description: 全局okHttpClient，保证使用一个网络实例
+     */
+    private okhttp3.OkHttpClient okHttpClient;
+    /**
+     * description: 全局retrofit，保证使用一个网络实例
+     */
+    private Retrofit retrofit;
+
+    /**
+     * description: 最大缓存数量
+     */
     private static final int MAX_SIZE = 150;
+    /**
+     * description: 缓存扩容因数
+     */
     private static final float MAX_SIZE_MULTIPLIER = 0.002f;
+    /**
+     * description: 缓存数量
+     */
     private static int cache_size = MAX_SIZE;
+    /**
+     * description: Lru缓存
+     */
     private LruCache<String, Object> mRetrofitServiceCache;
 
     private GlobalHttpUtils() {
+        okhttpBuilder = new okhttp3.OkHttpClient.Builder();
+        retrofitBuilder = new Retrofit.Builder();
     }
 
     public static GlobalHttpUtils getInstance() {
@@ -64,7 +100,23 @@ public class GlobalHttpUtils {
      * @param baseUrl 接口前缀
      */
     public GlobalHttpUtils setBaseUrl(String baseUrl) {
-        getRetrofitBuilder().baseUrl(baseUrl);
+        retrofitBuilder.baseUrl(baseUrl);
+        return this;
+    }
+
+    /**
+     * description 设置Converter.Factory,默认GsonConverterFactory.create()
+     */
+    public GlobalHttpUtils addConverterFactory(Converter.Factory factory) {
+        retrofitBuilder.addConverterFactory(factory);
+        return this;
+    }
+
+    /**
+     * description 设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+     */
+    public GlobalHttpUtils addCallAdapterFactory(CallAdapter.Factory factory) {
+        retrofitBuilder.addCallAdapterFactory(factory);
         return this;
     }
 
@@ -74,7 +126,7 @@ public class GlobalHttpUtils {
      * @param dns 域名解析服务器
      */
     public GlobalHttpUtils setDns(Dns dns) {
-        getOkHttpClientBuilder().dns(dns);
+        okhttpBuilder.dns(dns);
         return this;
     }
 
@@ -84,7 +136,7 @@ public class GlobalHttpUtils {
      * @param headerMaps 请求头设置的静态参数
      */
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps) {
-        getOkHttpClientBuilder().addInterceptor(new HeaderInterceptor(headerMaps));
+        okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
         return this;
     }
 
@@ -95,7 +147,7 @@ public class GlobalHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public GlobalHttpUtils setHeaders(Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        getOkHttpClientBuilder().addInterceptor(new HeaderInterceptor(headersFunction));
+        okhttpBuilder.addInterceptor(new HeaderInterceptor(headersFunction));
         return this;
     }
 
@@ -107,7 +159,7 @@ public class GlobalHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps, Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        getOkHttpClientBuilder().addInterceptor(new HeaderInterceptor(headerMaps, headersFunction));
+        okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps, headersFunction));
         return this;
     }
 
@@ -120,7 +172,7 @@ public class GlobalHttpUtils {
         if (isShowLog) {
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            getOkHttpClientBuilder().addInterceptor(loggingInterceptor);
+            okhttpBuilder.addInterceptor(loggingInterceptor);
         }
         return this;
     }
@@ -133,7 +185,7 @@ public class GlobalHttpUtils {
     public GlobalHttpUtils setLog(HttpLoggingInterceptor.Logger logger) {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(logger);
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        getOkHttpClientBuilder().addInterceptor(loggingInterceptor);
+        okhttpBuilder.addInterceptor(loggingInterceptor);
         return this;
     }
 
@@ -147,7 +199,7 @@ public class GlobalHttpUtils {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
             File file = new File(Environment.getExternalStorageDirectory() + "/RxHttpUtilsCache");
             Cache cache = new Cache(file, 1024 * 1024);
-            getOkHttpClientBuilder()
+            okhttpBuilder
                     .addInterceptor(cacheInterceptor)
                     .addNetworkInterceptor(cacheInterceptor)
                     .cache(cache);
@@ -167,7 +219,7 @@ public class GlobalHttpUtils {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
             File file = new File(path);
             Cache cache = new Cache(file, maxSize);
-            getOkHttpClientBuilder()
+            okhttpBuilder
                     .addInterceptor(cacheInterceptor)
                     .addNetworkInterceptor(cacheInterceptor)
                     .cache(cache);
@@ -182,7 +234,7 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setCookie(boolean saveCookie) {
         if (saveCookie) {
-            getOkHttpClientBuilder()
+            okhttpBuilder
                     .addInterceptor(new AddCookieInterceptor())
                     .addNetworkInterceptor(new SaveCookieInterceptor());
         }
@@ -198,7 +250,7 @@ public class GlobalHttpUtils {
      * @param appKey 验签时前后端匹配的appKey，前后端一致即可
      */
     public GlobalHttpUtils setSign(String appKey) {
-        getOkHttpClientBuilder().addInterceptor(new SignInterceptor(appKey));
+        okhttpBuilder.addInterceptor(new SignInterceptor(appKey));
         return this;
     }
 
@@ -212,8 +264,8 @@ public class GlobalHttpUtils {
     public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl, String publicKey) {
         EncryptConfig.publicKeyUrl = publicKeyUrl;
         EncryptConfig.publicKey = publicKey;
-        getOkHttpClientBuilder().addInterceptor(new EncryptionInterceptor());
-        getOkHttpClientBuilder().addNetworkInterceptor(new DecryptionInterceptor());
+        okhttpBuilder.addInterceptor(new EncryptionInterceptor());
+        okhttpBuilder.addNetworkInterceptor(new DecryptionInterceptor());
         return this;
     }
 
@@ -223,7 +275,7 @@ public class GlobalHttpUtils {
      * @param second 秒
      */
     public GlobalHttpUtils setReadTimeOut(long second) {
-        getOkHttpClientBuilder()
+        okhttpBuilder
                 .readTimeout(second, TimeUnit.SECONDS);
         return this;
     }
@@ -234,7 +286,7 @@ public class GlobalHttpUtils {
      * @param second 秒
      */
     public GlobalHttpUtils setWriteTimeOut(long second) {
-        getOkHttpClientBuilder()
+        okhttpBuilder
                 .writeTimeout(second, TimeUnit.SECONDS);
         return this;
     }
@@ -245,7 +297,7 @@ public class GlobalHttpUtils {
      * @param second 秒
      */
     public GlobalHttpUtils setConnectionTimeOut(long second) {
-        getOkHttpClientBuilder()
+        okhttpBuilder
                 .connectTimeout(second, TimeUnit.SECONDS);
         return this;
     }
@@ -255,7 +307,7 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setSslSocketFactory() {
         SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory();
-        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
+        okhttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 
@@ -266,7 +318,7 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setSslSocketFactory(InputStream... certificates) {
         SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory(certificates);
-        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
+        okhttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 
@@ -279,7 +331,7 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setSslSocketFactory(InputStream bksFile, String password, InputStream... certificates) {
         SSLUtils.SSLParams sslParams = SSLUtils.INSTANCE.getSslSocketFactory(bksFile, password, certificates);
-        getOkHttpClientBuilder().sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
+        okhttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         return this;
     }
 
@@ -324,19 +376,46 @@ public class GlobalHttpUtils {
                 new RetrofitServiceProxyHandler(getRetrofit(), cls));
     }
 
+    /**
+     * description 全局 okhttpBuilder
+     */
     public okhttp3.OkHttpClient.Builder getOkHttpClientBuilder() {
-        return OkHttpClient.getInstance().getBuilder();
+        return okhttpBuilder;
     }
 
-    public okhttp3.OkHttpClient getOkHttpClient() {
-        return OkHttpClient.getInstance().getClient();
-    }
-
+    /**
+     * description 全局 retrofitBuilder
+     */
     public Retrofit.Builder getRetrofitBuilder() {
-        return RetrofitClient.getInstance().getBuilder();
+        return retrofitBuilder;
     }
 
+    /**
+     * description 全局 okHttpClient，当okHttpClient构建完成后无法新增全局参数
+     */
+    public okhttp3.OkHttpClient getOkHttpClient() {
+        if (okHttpClient == null) {
+            okHttpClient = okhttpBuilder.build();
+        }
+        return okHttpClient;
+    }
+
+    /**
+     * description 全局 retrofit，当retrofit构建完成后无法修改全局baseUrl
+     */
     public Retrofit getRetrofit() {
-        return RetrofitClient.getInstance().getRetrofit();
+        if (okHttpClient == null) {
+            okHttpClient = okhttpBuilder.build();
+        }
+        if (retrofit == null) {
+            if (retrofitBuilder.callAdapterFactories().isEmpty()) {
+                retrofitBuilder.addCallAdapterFactory(RxJava2CallAdapterFactory.create());
+            }
+            if (retrofitBuilder.converterFactories().isEmpty()) {
+                retrofitBuilder.addConverterFactory(GsonConverterFactory.create());
+            }
+            retrofit = retrofitBuilder.client(okHttpClient).build();
+        }
+        return retrofit;
     }
 }

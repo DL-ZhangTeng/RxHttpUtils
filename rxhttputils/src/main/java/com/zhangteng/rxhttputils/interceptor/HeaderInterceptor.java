@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -57,6 +58,9 @@ public class HeaderInterceptor implements Interceptor {
     public Response intercept(Chain chain) throws IOException {
         Request.Builder request = chain.request().newBuilder();
         if (headersFunction != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            if (headerMaps == null) {
+                headerMaps = new HashMap<>();
+            }
             headerMaps = headersFunction.apply(headerMaps);
         }
 
