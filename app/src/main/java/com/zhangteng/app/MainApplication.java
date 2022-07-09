@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.OkHttpClient;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainApplication extends Application {
     private static MainApplication mainApplication;
@@ -27,10 +29,16 @@ public class MainApplication extends Application {
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
                 .setBaseUrl("https://**/")
+                //设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                //设置Converter.Factory,默认GsonConverterFactory.create()
+                .addConverterFactory(GsonConverterFactory.create())
                 //设置自定义域名解析
                 .setDns(HttpDns.getInstance())
                 //开启缓存策略
                 .setCache(true)
+                //全局的单个请求头信息
+                .addHeader("Authorization", "Bearer ")
                 //全局的静态请求头信息
                 .setHeaders(headersMap)
                 //全局的请求头信息

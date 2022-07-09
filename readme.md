@@ -11,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.2'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.3.0'
     //库所使用的三方
     implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
     implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
@@ -29,8 +29,11 @@ implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.2.2'
 属性名| 描述
 --- | -----
 setBaseUrl| ConfigGlobalHttpUtils()全局的BaseUrl；ConfigSingleInstance()单独设置BaseUrl
+addCallAdapterFactory| 设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+addConverterFactory| 设置Converter.Factory,默认GsonConverterFactory.create()
 setDns| 自定义域名解析
 setCache| 开启缓存策略
+addHeader| 全局的单个请求头信息
 setHeaders| 全局的请求头信息，设置静态请求头：更新请求头时不需要重新设置，对Map元素进行移除添加即可；设置动态请求头：如token等需要根据登录状态实时变化的请求头参数，最小支持api 24
 setSign| 全局验签，appKey与后端匹配即可，具体规则参考：https://blog.csdn.net/duoluo9/article/details/105214983
 setEnAndDecryption| 全局加解密(AES+RSA)。1、公钥请求路径HttpUrl.get(BuildConfig.HOST + "/getPublicKey")；2、公钥响应结果{"result": {"publicKey": ""},"message": "查询成功!","status": 100}
@@ -58,10 +61,16 @@ setLog| 全局是否打开请求log日志
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
                 .setBaseUrl("http://**/")
+                //设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                //设置Converter.Factory,默认GsonConverterFactory.create()
+                .addConverterFactory(GsonConverterFactory.create())
                 //设置自定义域名解析
                 .setDns(HttpDns.getInstance())
                 //开启缓存策略
                 .setCache(true)
+                //全局的单个请求头信息
+                .addHeader("Authorization", "Bearer ")
                 //全局的静态请求头信息
                 //.setHeaders(headersMap)
                 //全局的请求头信息
@@ -177,6 +186,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.3.0|增加addConverterFactory&addCallAdapterFactory&addHeader|2022/7/9 at 13:07
 v1.2.2|使用util库中的IException解决循环依赖&异常处理放入子类实现，方便调试异常|2022/7/4 at 17:50
 v1.2.1|增加动态请求头添加方法&自定义域名解析|2022/6/25 at 16:46
 v1.2.0|使用base库utils|2022/1/21 at 20:14

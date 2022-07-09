@@ -121,7 +121,7 @@ public class SingleHttpUtils {
      * @param key   请求头 key
      * @param value 请求头 value
      */
-    public SingleHttpUtils setHeader(String key, Object value) {
+    public SingleHttpUtils addHeader(String key, Object value) {
         if (headerMaps == null) {
             headerMaps = new HashMap<>();
         }

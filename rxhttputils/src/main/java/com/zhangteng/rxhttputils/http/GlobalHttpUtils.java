@@ -139,7 +139,7 @@ public class GlobalHttpUtils {
      * @param key   请求头 key
      * @param value 请求头 value
      */
-    public GlobalHttpUtils setHeader(String key, Object value) {
+    public GlobalHttpUtils addHeader(String key, Object value) {
         List<Interceptor> interceptors = okhttpBuilder.interceptors();
         Interceptor headerInterceptor = null;
         for (Interceptor interceptor : interceptors) {
