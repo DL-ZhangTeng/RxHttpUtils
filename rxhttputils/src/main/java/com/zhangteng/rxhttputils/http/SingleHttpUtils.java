@@ -116,6 +116,20 @@ public class SingleHttpUtils {
     }
 
     /**
+     * description 添加单个请求头
+     *
+     * @param key   请求头 key
+     * @param value 请求头 value
+     */
+    public SingleHttpUtils setHeader(String key, Object value) {
+        if (headerMaps == null) {
+            headerMaps = new HashMap<>();
+        }
+        headerMaps.put(key, value);
+        return this;
+    }
+
+    /**
      * description 设置请求头
      *
      * @param headerMaps 请求头设置的静态参数

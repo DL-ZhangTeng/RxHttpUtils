@@ -18,9 +18,15 @@ import okhttp3.Response;
  * Created by swing on 2018/4/24.
  */
 public class HeaderInterceptor implements Interceptor {
-
     private Map<String, Object> headerMaps;
     private Function<Map<String, Object>, Map<String, Object>> headersFunction;
+
+    /**
+     * description 设置请求头公共参数
+     */
+    public HeaderInterceptor() {
+
+    }
 
     /**
      * description 设置请求头公共参数
@@ -70,6 +76,14 @@ public class HeaderInterceptor implements Interceptor {
             }
         }
         return chain.proceed(request.build());
+    }
+
+    public void setHeaderMaps(Map<String, Object> headerMaps) {
+        this.headerMaps = headerMaps;
+    }
+
+    public Map<String, Object> getHeaderMaps() {
+        return headerMaps;
     }
 
 }

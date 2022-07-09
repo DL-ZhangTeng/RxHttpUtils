@@ -23,6 +23,8 @@ import com.zhangteng.utils.SSLUtils;
 import java.io.File;
 import java.io.InputStream;
 import java.lang.reflect.Proxy;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -31,6 +33,7 @@ import java.util.function.Function;
 import okhttp3.Cache;
 import okhttp3.Dns;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.CallAdapter;
 import retrofit2.Converter;
@@ -131,7 +134,30 @@ public class GlobalHttpUtils {
     }
 
     /**
-     * description 设置请求头公共参数
+     * description 添加单个请求头公共参数，当okHttpClient构建完成后依旧可以新增全局请求头参数，可随时添加修改公共请求头
+     *
+     * @param key   请求头 key
+     * @param value 请求头 value
+     */
+    public GlobalHttpUtils setHeader(String key, Object value) {
+        List<Interceptor> interceptors = okhttpBuilder.interceptors();
+        Interceptor headerInterceptor = null;
+        for (Interceptor interceptor : interceptors) {
+            if (interceptor instanceof HeaderInterceptor) {
+                headerInterceptor = interceptor;
+                ((HeaderInterceptor) headerInterceptor).getHeaderMaps().put(key, value);
+            }
+        }
+        if (headerInterceptor == null) {
+            Map<String, Object> headerMaps = new HashMap<>();
+            headerMaps.put(key, value);
+            okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
+        }
+        return this;
+    }
+
+    /**
+     * description 设置请求头公共参数，当okHttpClient构建完成后无法新增全局请求头参数
      *
      * @param headerMaps 请求头设置的静态参数
      */
