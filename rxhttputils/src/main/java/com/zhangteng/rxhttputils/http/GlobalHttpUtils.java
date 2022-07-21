@@ -116,7 +116,7 @@ public class GlobalHttpUtils {
     }
 
     /**
-     * description 设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+     * description 设置CallAdapter.Factory,默认RxJava2CallAdapterFactory.create()
      */
     public GlobalHttpUtils addCallAdapterFactory(CallAdapter.Factory factory) {
         retrofitBuilder.addCallAdapterFactory(factory);

@@ -9,6 +9,8 @@ import io.reactivex.Observable;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
+import retrofit2.CallAdapter;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -19,23 +21,23 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class DownloadRetrofit {
 
-    private static DownloadRetrofit instance;
+    private static volatile DownloadRetrofit instance;
     private Retrofit mRetrofit;
     private final Retrofit.Builder builder;
 
     private DownloadRetrofit() {
         builder = new Retrofit.Builder()
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
-                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
+                //默认使用全局配置
+                .addCallAdapterFactory(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().callAdapterFactories().get(0))
+                //默认使用全局配置
+                .addConverterFactory(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().converterFactories().get(0))
                 //默认使用全局baseUrl
-                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
+                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().build().baseUrl())
                 //默认使用全局配置
                 .client(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
     }
 
     public static DownloadRetrofit getInstance() {
-
         if (instance == null) {
             synchronized (DownloadRetrofit.class) {
                 if (instance == null) {
@@ -85,6 +87,36 @@ public class DownloadRetrofit {
     }
 
     /**
+     * description 设置Converter.Factory,传null时默认GsonConverterFactory.create()
+     *
+     * @param factory Converter.Factory
+     * @return DownloadRetrofit
+     */
+    public DownloadRetrofit addConverterFactory(Converter.Factory factory) {
+        if (factory != null) {
+            builder.addConverterFactory(factory);
+        } else {
+            builder.addConverterFactory(GsonConverterFactory.create());
+        }
+        return this;
+    }
+
+    /**
+     * description 设置CallAdapter.Factory,传null时默认RxJava2CallAdapterFactory.create()
+     *
+     * @param factory CallAdapter.Factory
+     * @return DownloadRetrofit
+     */
+    public DownloadRetrofit addCallAdapterFactory(CallAdapter.Factory factory) {
+        if (factory != null) {
+            builder.addCallAdapterFactory(factory);
+        } else {
+            builder.addCallAdapterFactory(RxJava2CallAdapterFactory.create());
+        }
+        return this;
+    }
+
+    /**
      * description 自定义网络请求client
      *
      * @param client 网络请求client
@@ -100,7 +132,7 @@ public class DownloadRetrofit {
     }
 
     /**
-     * description 下载文件 默认使用全据配置，如需自定义可用UploadRetrofit初始化
+     * description 下载文件 默认使用全据配置，如需自定义可用DownloadRetrofit初始化
      *
      * @param fileUrl 文件网络路径
      * @return Observable<ResponseBody>
@@ -111,6 +143,6 @@ public class DownloadRetrofit {
                 .getRetrofit()
                 .create(DownloadApi.class)
                 .downloadFile(fileUrl)
-                .compose(new ProgressDialogObservableTransformer<ResponseBody>());
+                .compose(new ProgressDialogObservableTransformer<>());
     }
 }

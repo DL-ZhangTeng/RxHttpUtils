@@ -96,7 +96,7 @@ public class SingleHttpUtils {
     }
 
     /**
-     * 局部设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
+     * 局部设置CallAdapter.Factory,默认RxJava2CallAdapterFactory.create()
      */
     public SingleHttpUtils addCallAdapterFactory(CallAdapter.Factory factory) {
         if (factory != null) {

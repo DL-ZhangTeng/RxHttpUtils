@@ -17,6 +17,8 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import retrofit2.CallAdapter;
+import retrofit2.Converter;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -27,22 +29,23 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class UploadRetrofit {
 
-    private static UploadRetrofit instance;
+    private static volatile UploadRetrofit instance;
     private Retrofit mRetrofit;
     private final Retrofit.Builder builder;
 
     private UploadRetrofit() {
         builder = new Retrofit.Builder()
-                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .addConverterFactory(GsonConverterFactory.create())
+                //默认使用全局配置
+                .addCallAdapterFactory(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().callAdapterFactories().get(0))
+                //默认使用全局配置
+                .addConverterFactory(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().converterFactories().get(0))
                 //默认使用全局baseUrl
-                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl())
+                .baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofitBuilder().build().baseUrl())
                 //默认使用全局配置
                 .client(HttpUtils.getInstance().ConfigGlobalHttpUtils().getOkHttpClient());
     }
 
     public static UploadRetrofit getInstance() {
-
         if (instance == null) {
             synchronized (UploadRetrofit.class) {
                 if (instance == null) {
@@ -87,6 +90,36 @@ public class UploadRetrofit {
             builder.baseUrl(HttpUtils.getInstance().ConfigGlobalHttpUtils().getRetrofit().baseUrl());
         } else {
             builder.baseUrl(baseUrl);
+        }
+        return this;
+    }
+
+    /**
+     * description 设置Converter.Factory,传null时默认GsonConverterFactory.create()
+     *
+     * @param factory Converter.Factory
+     * @return UploadRetrofit
+     */
+    public UploadRetrofit addConverterFactory(Converter.Factory factory) {
+        if (factory != null) {
+            builder.addConverterFactory(factory);
+        } else {
+            builder.addConverterFactory(GsonConverterFactory.create());
+        }
+        return this;
+    }
+
+    /**
+     * description 设置CallAdapter.Factory,传null时默认RxJava2CallAdapterFactory.create()
+     *
+     * @param factory CallAdapter.Factory
+     * @return UploadRetrofit
+     */
+    public UploadRetrofit addCallAdapterFactory(CallAdapter.Factory factory) {
+        if (factory != null) {
+            builder.addCallAdapterFactory(factory);
+        } else {
+            builder.addCallAdapterFactory(RxJava2CallAdapterFactory.create());
         }
         return this;
     }

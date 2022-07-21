@@ -20,7 +20,7 @@ import io.reactivex.disposables.Disposable;
  * Created by swing on 2018/4/24.
  */
 public class HttpUtils {
-    private static HttpUtils instance;
+    private static volatile HttpUtils instance;
     private static Application context;
     private static HashMap<Disposable, Object> disposables;
 
@@ -39,10 +39,16 @@ public class HttpUtils {
         return instance;
     }
 
+    /**
+     * description 初始化context
+     */
     public static void init(Application app) {
         context = app;
     }
 
+    /**
+     * description 获取全局context
+     */
     public Context getContext() {
         checkInitialize();
         return context;
@@ -77,8 +83,7 @@ public class HttpUtils {
     }
 
     public HashSet<String> getCookie() {
-        HashSet<String> preferences = (HashSet<String>) SPUtilsKt.getFromSPForSet(context, SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
-        return preferences;
+        return (HashSet<String>) SPUtilsKt.getFromSPForSet(context, SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<>());
     }
 
     /**
