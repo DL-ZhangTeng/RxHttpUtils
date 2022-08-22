@@ -83,7 +83,7 @@ public class HttpUtils {
     }
 
     public HashSet<String> getCookie() {
-        return (HashSet<String>) SPUtilsKt.getFromSPForSet(context, SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<>());
+        return (HashSet<String>) SPUtilsKt.getFromSPToSet(context, SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<>());
     }
 
     /**

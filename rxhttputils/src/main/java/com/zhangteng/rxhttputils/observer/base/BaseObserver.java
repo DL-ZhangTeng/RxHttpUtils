@@ -2,6 +2,7 @@ package com.zhangteng.rxhttputils.observer.base;
 
 
 import com.zhangteng.rxhttputils.observer.interfaces.ISubscriber;
+import com.zhangteng.utils.IException;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -27,7 +28,7 @@ public abstract class BaseObserver<T> implements Observer<T>, ISubscriber<T> {
 
     @Override
     public void onError(Throwable e) {
-        doOnError(e);
+        doOnError(IException.Companion.handleException(e));
     }
 
     @Override

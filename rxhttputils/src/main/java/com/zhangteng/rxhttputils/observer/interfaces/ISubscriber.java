@@ -1,5 +1,7 @@
 package com.zhangteng.rxhttputils.observer.interfaces;
 
+import com.zhangteng.utils.IException;
+
 import io.reactivex.disposables.Disposable;
 
 /**
@@ -9,7 +11,7 @@ public interface ISubscriber<T> {
 
     void doOnSubscribe(Disposable d);
 
-    void doOnError(Throwable e);
+    void doOnError(IException iException);
 
     void doOnNext(T t);
 

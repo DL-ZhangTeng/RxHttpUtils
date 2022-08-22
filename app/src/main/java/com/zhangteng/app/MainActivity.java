@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.observer.CommonObserver;
+import com.zhangteng.utils.IException;
+import com.zhangteng.utils.LogUtilsKt;
 import com.zhangteng.utils.ToastUtilsKt;
 
 import io.reactivex.android.schedulers.AndroidSchedulers;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
 //                .compose(new ProgressDialogObservableTransformer<>(mProgressDialog))
 //                .subscribe(new CommonObserver<BaseResponse<LoginBean>>() {
 //                    @Override
-//                    protected void onFailure(String errorMsg) {
+//                    protected void onFailure(IException iException) {
 //
 //                    }
 //
@@ -62,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 //                    }
 //
 //                    @Override
-//                    public void doOnError(Throwable e) {
+//                    public void doOnError(IException iException) {
 //
 //                    }
 //
@@ -88,8 +90,8 @@ public class MainActivity extends AppCompatActivity {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new CommonObserver<BaseResponse<LoginBean>>(mProgressDialog) {
                     @Override
-                    protected void onFailure(String errorMsg) {
-
+                    protected void onFailure(IException iException) {
+                        LogUtilsKt.e(iException.getMessage());
                     }
 
                     @Override

@@ -11,10 +11,10 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.3.0'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.4.0'
     //库所使用的三方
-    implementation 'androidx.lifecycle:lifecycle-common:2.3.1'
-    implementation 'androidx.lifecycle:lifecycle-runtime:2.3.1'
+    implementation 'androidx.lifecycle:lifecycle-common:2.4.0'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.4.0'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -22,7 +22,8 @@ implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.3.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
-    implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.3.5'
+    //noinspection GradleDynamicVersion
+    implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.4.+'
 ```
 
 ## 属性
@@ -138,7 +139,7 @@ setLog| 全局是否打开请求log日志
                     }
 
                     @Override
-                    public void doOnError(Throwable e) {
+                    public void doOnError(IException iException) {
 
                     }
 
@@ -165,7 +166,7 @@ setLog| 全局是否打开请求log日志
 //                .observeOn(AndroidSchedulers.mainThread())
 //                .subscribe(new CommonObserver<BaseResponse<LoginBean>>(mProgressDialog) {
 //                    @Override
-//                    protected void onFailure(String errorMsg) {
+//                    protected void onFailure(IException iException) {
 //
 //                    }
 //
@@ -186,6 +187,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.4.0|使用rxJava时向外抛出IException，便于调试|2022/8/22 at 10:46
 v1.3.0|增加addConverterFactory&addCallAdapterFactory&addHeader|2022/7/9 at 13:07
 v1.2.2|使用util库中的IException解决循环依赖&异常处理放入子类实现，方便调试异常|2022/7/4 at 17:50
 v1.2.1|增加动态请求头添加方法&自定义域名解析|2022/6/25 at 16:46

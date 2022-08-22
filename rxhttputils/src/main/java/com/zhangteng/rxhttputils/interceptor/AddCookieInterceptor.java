@@ -20,7 +20,7 @@ public class AddCookieInterceptor implements Interceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request.Builder builder = chain.request().newBuilder();
-        HashSet<String> preferences = (HashSet<String>) SPUtilsKt.getFromSPForSet(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
+        HashSet<String> preferences = (HashSet<String>) SPUtilsKt.getFromSPToSet(HttpUtils.getInstance().getContext(), SPConfig.FILE_NAME, SPConfig.COOKIE, new HashSet<String>());
         if (preferences != null) {
             for (String cookie : preferences) {
                 builder.addHeader("Cookie", cookie);

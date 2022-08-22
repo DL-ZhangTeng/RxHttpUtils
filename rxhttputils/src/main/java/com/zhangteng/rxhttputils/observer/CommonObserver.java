@@ -49,14 +49,14 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
     /**
      * 失败回调
      *
-     * @param errorMsg
+     * @param iException 错误信息
      */
-    protected abstract void onFailure(String errorMsg);
+    protected abstract void onFailure(IException iException);
 
     /**
      * 成功回调
      *
-     * @param t
+     * @param t 数据
      */
     protected abstract void onSuccess(T t);
 
@@ -72,7 +72,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
     }
 
     @Override
-    public void doOnError(Throwable e) {
+    public void doOnError(IException iException) {
         if (disposable != null) {
             HttpUtils.getInstance().cancelSingleRequest(disposable);
             disposable = null;
@@ -81,11 +81,10 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
         if (mProgressDialog != null && mProgressDialog.isShowing()) {
             mProgressDialog.dismiss();
         }
-        String message = IException.Companion.handleException(e).getMessage();
         if (!isHideToast()) {
-            ToastUtilsKt.showShortToast(HttpUtils.getInstance().getContext(), message);
+            ToastUtilsKt.showShortToast(HttpUtils.getInstance().getContext(), iException.getMessage());
         }
-        onFailure(message);
+        onFailure(iException);
     }
 
 
@@ -108,7 +107,7 @@ public abstract class CommonObserver<T> extends BaseObserver<T> {
     }
 
     /**
-     * @description 目标是否销毁
+     * description 目标是否销毁
      */
     private boolean isTargetDestroy() {
         return tag != null
