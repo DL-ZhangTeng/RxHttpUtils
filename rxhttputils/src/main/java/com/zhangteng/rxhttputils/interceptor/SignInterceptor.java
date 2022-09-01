@@ -27,7 +27,7 @@ import okio.Buffer;
  * 添加签名拦截器
  * Created by Swing on 2019/10/20.
  */
-public class SignInterceptor implements Interceptor {
+public class SignInterceptor implements Interceptor, PriorityInterceptor {
     private static final String METHOD_GET = "GET";
     private static final String METHOD_POST = "POST";
     private String appKey;
@@ -88,5 +88,10 @@ public class SignInterceptor implements Interceptor {
         requestBuilder.addHeader("_timestamp", String.valueOf(_timestamp));
         requestBuilder.addHeader("_sign", MD5Util.INSTANCE.md5Decode32(sign.toString()));
         return chain.proceed(requestBuilder.build());
+    }
+
+    @Override
+    public int getPriority() {
+        return 4;
     }
 }

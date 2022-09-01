@@ -17,7 +17,7 @@ import static java.util.Calendar.getInstance;
 /**
  * Created by swing on 2018/4/24.
  */
-public class SaveCookieInterceptor implements Interceptor {
+public class SaveCookieInterceptor implements Interceptor, PriorityInterceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Response originalResponse = chain.proceed(chain.request());
@@ -39,6 +39,10 @@ public class SaveCookieInterceptor implements Interceptor {
         return originalResponse;
     }
 
+    @Override
+    public int getPriority() {
+        return 2;
+    }
 
     /**
      * 将时间转换为时间戳

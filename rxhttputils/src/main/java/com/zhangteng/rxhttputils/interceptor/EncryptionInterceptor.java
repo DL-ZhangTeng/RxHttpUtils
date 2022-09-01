@@ -30,10 +30,10 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 
 /**
- * 添加加解密拦截器
+ * 添加加密拦截器
  * Created by Swing on 2019/10/20.
  */
-public class EncryptionInterceptor implements Interceptor {
+public class EncryptionInterceptor implements Interceptor, PriorityInterceptor {
     public static final String METHOD_GET = "GET";
     public static final String METHOD_POST = "POST";
 
@@ -82,6 +82,14 @@ public class EncryptionInterceptor implements Interceptor {
             return secretResponse;
         }
         return chain.proceed(request);
+    }
+
+    /**
+     * description 保证加密时优先执行且避免特殊情况需要广域晚于解密之前执行的Interceptor因此返回Integer.MAX_VALUE - 1
+     */
+    @Override
+    public int getPriority() {
+        return Integer.MAX_VALUE - 1;
     }
 
     /**

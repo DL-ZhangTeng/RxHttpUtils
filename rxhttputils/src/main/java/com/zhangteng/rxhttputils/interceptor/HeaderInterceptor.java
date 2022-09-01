@@ -17,7 +17,7 @@ import okhttp3.Response;
 /**
  * Created by swing on 2018/4/24.
  */
-public class HeaderInterceptor implements Interceptor {
+public class HeaderInterceptor implements Interceptor, PriorityInterceptor {
     private Map<String, Object> headerMaps;
     private Function<Map<String, Object>, Map<String, Object>> headersFunction;
 
@@ -76,6 +76,11 @@ public class HeaderInterceptor implements Interceptor {
             }
         }
         return chain.proceed(request.build());
+    }
+
+    @Override
+    public int getPriority() {
+        return 1;
     }
 
     public void setHeaderMaps(Map<String, Object> headerMaps) {
