@@ -3,7 +3,6 @@ package com.zhangteng.rxhttputils.http;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.os.Build;
-import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -11,13 +10,16 @@ import androidx.annotation.RequiresApi;
 import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
+import com.zhangteng.rxhttputils.interceptor.CallBackInterceptor;
 import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
+import com.zhangteng.rxhttputils.interceptor.HttpLoggingProxyInterceptor;
 import com.zhangteng.rxhttputils.interceptor.PriorityInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
+import com.zhangteng.utils.FileUtilsKt;
 import com.zhangteng.utils.LruCache;
 import com.zhangteng.utils.SSLUtils;
 
@@ -83,13 +85,19 @@ public class GlobalHttpUtils {
      */
     private LruCache<String, Object> mRetrofitServiceCache;
     /**
-     * description: 拦截器集合,按照优先级从小到大排序new TreeSet<>((l, r) -> l.getPriority() < r.getPriority() ? 1 : 0)
+     * description: 拦截器集合,按照优先级从小到大排序
      */
-    private TreeSet<PriorityInterceptor> priorityInterceptors;
+    private final TreeSet<PriorityInterceptor> priorityInterceptors;
+    /**
+     * description: 网络拦截器集合,按照优先级从小到大排序
+     */
+    private final TreeSet<PriorityInterceptor> networkInterceptors;
 
     private GlobalHttpUtils() {
         okhttpBuilder = new okhttp3.OkHttpClient.Builder();
         retrofitBuilder = new Retrofit.Builder();
+        priorityInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
+        networkInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
     }
 
     public static GlobalHttpUtils getInstance() {
@@ -157,7 +165,7 @@ public class GlobalHttpUtils {
         if (headerInterceptor == null) {
             Map<String, Object> headerMaps = new HashMap<>();
             headerMaps.put(key, value);
-            okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
+            priorityInterceptors.add(new HeaderInterceptor(headerMaps));
         }
         return this;
     }
@@ -168,7 +176,7 @@ public class GlobalHttpUtils {
      * @param headerMaps 请求头设置的静态参数
      */
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps) {
-        okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
+        priorityInterceptors.add(new HeaderInterceptor(headerMaps));
         return this;
     }
 
@@ -179,7 +187,7 @@ public class GlobalHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public GlobalHttpUtils setHeaders(Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        okhttpBuilder.addInterceptor(new HeaderInterceptor(headersFunction));
+        priorityInterceptors.add(new HeaderInterceptor(headersFunction));
         return this;
     }
 
@@ -191,7 +199,7 @@ public class GlobalHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public GlobalHttpUtils setHeaders(Map<String, Object> headerMaps, Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        okhttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps, headersFunction));
+        priorityInterceptors.add(new HeaderInterceptor(headerMaps, headersFunction));
         return this;
     }
 
@@ -204,7 +212,8 @@ public class GlobalHttpUtils {
         if (isShowLog) {
             HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
             loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            okhttpBuilder.addInterceptor(loggingInterceptor);
+            HttpLoggingProxyInterceptor proxyInterceptor = new HttpLoggingProxyInterceptor(loggingInterceptor);
+            priorityInterceptors.add(proxyInterceptor);
         }
         return this;
     }
@@ -217,7 +226,8 @@ public class GlobalHttpUtils {
     public GlobalHttpUtils setLog(HttpLoggingInterceptor.Logger logger) {
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(logger);
         loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        okhttpBuilder.addInterceptor(loggingInterceptor);
+        HttpLoggingProxyInterceptor proxyInterceptor = new HttpLoggingProxyInterceptor(loggingInterceptor);
+        priorityInterceptors.add(proxyInterceptor);
         return this;
     }
 
@@ -229,12 +239,11 @@ public class GlobalHttpUtils {
     public GlobalHttpUtils setCache(boolean isCache) {
         if (isCache) {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
-            File file = new File(Environment.getExternalStorageDirectory() + "/RxHttpUtilsCache");
+            File file = new File(FileUtilsKt.getDiskCacheDir(HttpUtils.getInstance().getContext()) + "/RxHttpUtilsCache");
             Cache cache = new Cache(file, 1024 * 1024);
-            okhttpBuilder
-                    .addInterceptor(cacheInterceptor)
-                    .addNetworkInterceptor(cacheInterceptor)
-                    .cache(cache);
+            priorityInterceptors.add(cacheInterceptor);
+            networkInterceptors.add(cacheInterceptor);
+            okhttpBuilder.cache(cache);
         }
         return this;
     }
@@ -251,10 +260,9 @@ public class GlobalHttpUtils {
             CacheInterceptor cacheInterceptor = new CacheInterceptor();
             File file = new File(path);
             Cache cache = new Cache(file, maxSize);
-            okhttpBuilder
-                    .addInterceptor(cacheInterceptor)
-                    .addNetworkInterceptor(cacheInterceptor)
-                    .cache(cache);
+            priorityInterceptors.add(cacheInterceptor);
+            networkInterceptors.add(cacheInterceptor);
+            okhttpBuilder.cache(cache);
         }
         return this;
     }
@@ -266,9 +274,20 @@ public class GlobalHttpUtils {
      */
     public GlobalHttpUtils setCookie(boolean saveCookie) {
         if (saveCookie) {
-            okhttpBuilder
-                    .addInterceptor(new AddCookieInterceptor())
-                    .addNetworkInterceptor(new SaveCookieInterceptor());
+            priorityInterceptors.add(new AddCookieInterceptor());
+            networkInterceptors.add(new SaveCookieInterceptor());
+        }
+        return this;
+    }
+
+    /**
+     * description 设置网络请求前后回调函数
+     *
+     * @param callBack 网络回调类
+     */
+    public GlobalHttpUtils setHttpCallBack(CallBackInterceptor.CallBack callBack) {
+        if (callBack != null) {
+            priorityInterceptors.add(new CallBackInterceptor(callBack));
         }
         return this;
     }
@@ -282,7 +301,7 @@ public class GlobalHttpUtils {
      * @param appKey 验签时前后端匹配的appKey，前后端一致即可
      */
     public GlobalHttpUtils setSign(String appKey) {
-        okhttpBuilder.addInterceptor(new SignInterceptor(appKey));
+        priorityInterceptors.add(new SignInterceptor(appKey));
         return this;
     }
 
@@ -296,8 +315,48 @@ public class GlobalHttpUtils {
     public GlobalHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl, String publicKey) {
         EncryptConfig.publicKeyUrl = publicKeyUrl;
         EncryptConfig.publicKey = publicKey;
-        okhttpBuilder.addInterceptor(new EncryptionInterceptor());
-        okhttpBuilder.addNetworkInterceptor(new DecryptionInterceptor());
+        priorityInterceptors.add(new EncryptionInterceptor());
+        networkInterceptors.add(new DecryptionInterceptor());
+        return this;
+    }
+
+    /**
+     * description 添加拦截器
+     *
+     * @param interceptor 带优先级的拦截器
+     */
+    public GlobalHttpUtils addInterceptor(PriorityInterceptor interceptor) {
+        priorityInterceptors.add(interceptor);
+        return this;
+    }
+
+    /**
+     * description 添加拦截器
+     *
+     * @param interceptors 带优先级的拦截器
+     */
+    public GlobalHttpUtils addInterceptors(List<PriorityInterceptor> interceptors) {
+        priorityInterceptors.addAll(interceptors);
+        return this;
+    }
+
+    /**
+     * description 添加网络拦截器
+     *
+     * @param interceptor 带优先级的拦截器
+     */
+    public GlobalHttpUtils addNetworkInterceptor(PriorityInterceptor interceptor) {
+        networkInterceptors.add(interceptor);
+        return this;
+    }
+
+    /**
+     * description 添加网络拦截器
+     *
+     * @param interceptors 带优先级的拦截器
+     */
+    public GlobalHttpUtils addNetworkInterceptors(List<PriorityInterceptor> interceptors) {
+        networkInterceptors.addAll(interceptors);
         return this;
     }
 
@@ -427,6 +486,12 @@ public class GlobalHttpUtils {
      */
     public okhttp3.OkHttpClient getOkHttpClient() {
         if (okHttpClient == null) {
+            for (PriorityInterceptor priorityInterceptor : priorityInterceptors) {
+                okhttpBuilder.addInterceptor(priorityInterceptor);
+            }
+            for (PriorityInterceptor priorityInterceptor : networkInterceptors) {
+                okhttpBuilder.addNetworkInterceptor(priorityInterceptor);
+            }
             okHttpClient = okhttpBuilder.build();
         }
         return okHttpClient;
@@ -437,6 +502,12 @@ public class GlobalHttpUtils {
      */
     public Retrofit getRetrofit() {
         if (okHttpClient == null) {
+            for (PriorityInterceptor priorityInterceptor : priorityInterceptors) {
+                okhttpBuilder.addInterceptor(priorityInterceptor);
+            }
+            for (PriorityInterceptor priorityInterceptor : networkInterceptors) {
+                okhttpBuilder.addNetworkInterceptor(priorityInterceptor);
+            }
             okHttpClient = okhttpBuilder.build();
         }
         if (retrofit == null) {

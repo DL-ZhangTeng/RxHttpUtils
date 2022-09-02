@@ -2,12 +2,18 @@ package com.zhangteng.app;
 
 import android.app.Application;
 
+import androidx.annotation.NonNull;
+
 import com.zhangteng.rxhttputils.http.HttpUtils;
+import com.zhangteng.rxhttputils.interceptor.CallBackInterceptor;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -72,6 +78,21 @@ public class MainApplication extends Application {
 //                })
                 //全局持久话cookie,保存本地每次都会携带在header中
                 .setCookie(false)
+                .setHttpCallBack(new CallBackInterceptor.CallBack() {
+                    @NonNull
+                    @Override
+                    public Response onHttpResponse(@NonNull Interceptor.Chain chain, @NonNull Response response) {
+                        //这里可以先客户端一步拿到每一次 Http 请求的结果
+                        return response;
+                    }
+
+                    @NonNull
+                    @Override
+                    public Request onHttpRequest(@NonNull Interceptor.Chain chain, @NonNull Request request) {
+                        //这里可以在请求服务器之前拿到
+                        return request;
+                    }
+                })
                 //全局ssl证书认证
                 //信任所有证书,不安全有风险
                 .setSslSocketFactory()

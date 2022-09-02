@@ -14,29 +14,29 @@ import okhttp3.Response;
  * date: 2022/9/1
  */
 public class CallBackInterceptor implements PriorityInterceptor {
-    private final HttpHandler httpHandler;
+    private final CallBack callBack;
 
-    public CallBackInterceptor(HttpHandler httpHandler) {
-        this.httpHandler = httpHandler;
+    public CallBackInterceptor(CallBack callBack) {
+        this.callBack = callBack;
     }
 
     @NonNull
     @Override
     public Response intercept(@NonNull Chain chain) throws IOException {
-        if (httpHandler != null) {
+        if (callBack != null) {
             //在请求服务器之前拿到
-            Request request = httpHandler.onHttpRequestBefore(chain, chain.request());
+            Request request = callBack.onHttpRequest(chain, chain.request());
             Response response = chain.proceed(request);
             //这里可以比客户端提前一步拿到服务器返回的结果
-            return httpHandler.onHttpResultResponse(chain, response);
+            return callBack.onHttpResponse(chain, response);
         } else {
             return chain.proceed(chain.request());
         }
     }
 
     /**
-     * description 晚于{@link CacheInterceptor} {@link HeaderInterceptor} {@link AddCookieInterceptor}执行
-     * 早于{@link SignInterceptor} {@link EncryptionInterceptor}执行
+     * 晚于{@link CacheInterceptor} {@link HeaderInterceptor} {@link AddCookieInterceptor}执行
+     * 早于{@link SignInterceptor} {@link HttpLoggingProxyInterceptor} {@link EncryptionInterceptor}执行
      */
     @Override
     public int getPriority() {
@@ -46,7 +46,7 @@ public class CallBackInterceptor implements PriorityInterceptor {
     /**
      * 处理 Http 请求和响应结果的处理类
      */
-    public interface HttpHandler {
+    public interface CallBack {
 
         /**
          * 这里可以先客户端一步拿到每一次 Http 请求的结果
@@ -56,7 +56,7 @@ public class CallBackInterceptor implements PriorityInterceptor {
          * @return {@link Response}
          */
         @NonNull
-        Response onHttpResultResponse(@NonNull Interceptor.Chain chain, @NonNull Response response);
+        Response onHttpResponse(@NonNull Interceptor.Chain chain, @NonNull Response response);
 
         /**
          * 这里可以在请求服务器之前拿到 {@link Request}
@@ -66,26 +66,6 @@ public class CallBackInterceptor implements PriorityInterceptor {
          * @return {@link Request}
          */
         @NonNull
-        Request onHttpRequestBefore(@NonNull Interceptor.Chain chain, @NonNull Request request);
-
-        /**
-         * 空实现
-         */
-        HttpHandler EMPTY = new HttpHandler() {
-
-            @NonNull
-            @Override
-            public Response onHttpResultResponse(@NonNull Interceptor.Chain chain, @NonNull Response response) {
-                //都必须将 response 返回出去
-                return response;
-            }
-
-            @NonNull
-            @Override
-            public Request onHttpRequestBefore(@NonNull Interceptor.Chain chain, @NonNull Request request) {
-                //都必须将 request 返回出去
-                return request;
-            }
-        };
+        Request onHttpRequest(@NonNull Interceptor.Chain chain, @NonNull Request request);
     }
 }
