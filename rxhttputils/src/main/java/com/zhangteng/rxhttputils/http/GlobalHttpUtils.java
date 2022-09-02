@@ -154,9 +154,8 @@ public class GlobalHttpUtils {
      * @param value 请求头 value
      */
     public GlobalHttpUtils addHeader(String key, Object value) {
-        List<Interceptor> interceptors = okhttpBuilder.interceptors();
         Interceptor headerInterceptor = null;
-        for (Interceptor interceptor : interceptors) {
+        for (Interceptor interceptor : priorityInterceptors) {
             if (interceptor instanceof HeaderInterceptor) {
                 headerInterceptor = interceptor;
                 ((HeaderInterceptor) headerInterceptor).getHeaderMaps().put(key, value);

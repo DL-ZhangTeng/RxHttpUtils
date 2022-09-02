@@ -1,7 +1,6 @@
 package com.zhangteng.rxhttputils.http;
 
 import android.os.Build;
-import android.os.Environment;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -9,12 +8,16 @@ import androidx.annotation.RequiresApi;
 import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.interceptor.AddCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
+import com.zhangteng.rxhttputils.interceptor.CallBackInterceptor;
 import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
+import com.zhangteng.rxhttputils.interceptor.HttpLoggingProxyInterceptor;
+import com.zhangteng.rxhttputils.interceptor.PriorityInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
+import com.zhangteng.utils.FileUtilsKt;
 import com.zhangteng.utils.SSLUtils;
 
 import java.io.File;
@@ -25,12 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import okhttp3.Cache;
 import okhttp3.Dns;
 import okhttp3.HttpUrl;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.CallAdapter;
@@ -45,21 +50,7 @@ public class SingleHttpUtils {
     private String baseUrl;
     private Dns dns;
 
-    private Map<String, Object> headerMaps = new HashMap<>();
-    private Function<Map<String, Object>, Map<String, Object>> headersFunction;
-
-    private boolean isShowLog = true;
-    private HttpLoggingInterceptor.Logger logger = null;
-    private boolean isCache = false;
-    private boolean saveCookie = true;
-    private boolean sign = false;
-    private boolean encrypt = false;
-
-    private String cachePath;
-    private String appKey;
-    private long cacheMaxSize;
-    private HttpUrl publicKeyUrl;
-    private String publicKey;
+    private Cache cache;
 
     private long readTimeout;
     private long writeTimeout;
@@ -70,8 +61,28 @@ public class SingleHttpUtils {
     private final List<Converter.Factory> converterFactories = new ArrayList<>();
     private final List<CallAdapter.Factory> adapterFactories = new ArrayList<>();
 
+    /**
+     * description: 拦截器集合,按照优先级从小到大排序
+     */
+    private final TreeSet<PriorityInterceptor> priorityInterceptors;
+    /**
+     * description: 网络拦截器集合,按照优先级从小到大排序
+     */
+    private final TreeSet<PriorityInterceptor> networkInterceptors;
+
+    private SingleHttpUtils() {
+        priorityInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
+        networkInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
+    }
+
     public static SingleHttpUtils getInstance() {
-        instance = new SingleHttpUtils();
+        if (instance == null) {
+            synchronized (SingleHttpUtils.class) {
+                if (instance == null) {
+                    instance = new SingleHttpUtils();
+                }
+            }
+        }
         return instance;
     }
 
@@ -116,26 +127,34 @@ public class SingleHttpUtils {
     }
 
     /**
-     * description 添加单个请求头
+     * description 添加单个请求头公共参数，当okHttpClient构建完成后依旧可以新增全局请求头参数，可随时添加修改公共请求头
      *
      * @param key   请求头 key
      * @param value 请求头 value
      */
     public SingleHttpUtils addHeader(String key, Object value) {
-        if (headerMaps == null) {
-            headerMaps = new HashMap<>();
+        Interceptor headerInterceptor = null;
+        for (Interceptor interceptor : priorityInterceptors) {
+            if (interceptor instanceof HeaderInterceptor) {
+                headerInterceptor = interceptor;
+                ((HeaderInterceptor) headerInterceptor).getHeaderMaps().put(key, value);
+            }
         }
-        headerMaps.put(key, value);
+        if (headerInterceptor == null) {
+            Map<String, Object> headerMaps = new HashMap<>();
+            headerMaps.put(key, value);
+            priorityInterceptors.add(new HeaderInterceptor(headerMaps));
+        }
         return this;
     }
 
     /**
-     * description 设置请求头
+     * description 设置请求头公共参数，当okHttpClient构建完成后无法新增全局请求头参数
      *
      * @param headerMaps 请求头设置的静态参数
      */
     public SingleHttpUtils setHeaders(Map<String, Object> headerMaps) {
-        this.headerMaps = headerMaps;
+        priorityInterceptors.add(new HeaderInterceptor(headerMaps));
         return this;
     }
 
@@ -146,7 +165,7 @@ public class SingleHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public SingleHttpUtils setHeaders(Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        this.headersFunction = headersFunction;
+        priorityInterceptors.add(new HeaderInterceptor(headersFunction));
         return this;
     }
 
@@ -158,8 +177,7 @@ public class SingleHttpUtils {
      */
     @RequiresApi(api = Build.VERSION_CODES.N)
     public SingleHttpUtils setHeaders(Map<String, Object> headerMaps, Function<Map<String, Object>, Map<String, Object>> headersFunction) {
-        this.headerMaps = headerMaps;
-        this.headersFunction = headersFunction;
+        priorityInterceptors.add(new HeaderInterceptor(headerMaps, headersFunction));
         return this;
     }
 
@@ -169,7 +187,12 @@ public class SingleHttpUtils {
      * @param isShowLog 是否
      */
     public SingleHttpUtils setLog(boolean isShowLog) {
-        this.isShowLog = isShowLog;
+        if (isShowLog) {
+            HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
+            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+            HttpLoggingProxyInterceptor proxyInterceptor = new HttpLoggingProxyInterceptor(loggingInterceptor);
+            priorityInterceptors.add(proxyInterceptor);
+        }
         return this;
     }
 
@@ -179,8 +202,10 @@ public class SingleHttpUtils {
      * @param logger 自定义日志打印类
      */
     public SingleHttpUtils setLog(HttpLoggingInterceptor.Logger logger) {
-        this.isShowLog = true;
-        this.logger = logger;
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor(logger);
+        loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
+        HttpLoggingProxyInterceptor proxyInterceptor = new HttpLoggingProxyInterceptor(loggingInterceptor);
+        priorityInterceptors.add(proxyInterceptor);
         return this;
     }
 
@@ -190,21 +215,31 @@ public class SingleHttpUtils {
      * @param isCache 是否开启缓存
      */
     public SingleHttpUtils setCache(boolean isCache) {
-        this.isCache = isCache;
+        if (isCache) {
+            CacheInterceptor cacheInterceptor = new CacheInterceptor();
+            File file = new File(FileUtilsKt.getDiskCacheDir(HttpUtils.getInstance().getContext()) + "/RxHttpUtilsCache");
+            cache = new Cache(file, 1024 * 1024);
+            priorityInterceptors.add(cacheInterceptor);
+            networkInterceptors.add(cacheInterceptor);
+        }
         return this;
     }
 
     /**
      * description 设置网络缓存，有网时使用网络默认缓存策略，无网时使用强制缓存策略
      *
-     * @param isCache   是否开启缓存
-     * @param cachePath 缓存文件路径
-     * @param maxSize   缓存文件大小
+     * @param isCache 是否开启缓存
+     * @param path    缓存文件路径
+     * @param maxSize 缓存文件大小
      */
-    public SingleHttpUtils setCache(boolean isCache, String cachePath, long maxSize) {
-        this.isCache = isCache;
-        this.cachePath = cachePath;
-        this.cacheMaxSize = maxSize;
+    public SingleHttpUtils setCache(boolean isCache, String path, long maxSize) {
+        if (isCache) {
+            CacheInterceptor cacheInterceptor = new CacheInterceptor();
+            File file = new File(path);
+            cache = new Cache(file, maxSize);
+            priorityInterceptors.add(cacheInterceptor);
+            networkInterceptors.add(cacheInterceptor);
+        }
         return this;
     }
 
@@ -214,7 +249,22 @@ public class SingleHttpUtils {
      * @param saveCookie 是否设置Cookie
      */
     public SingleHttpUtils setCookie(boolean saveCookie) {
-        this.saveCookie = saveCookie;
+        if (saveCookie) {
+            priorityInterceptors.add(new AddCookieInterceptor());
+            networkInterceptors.add(new SaveCookieInterceptor());
+        }
+        return this;
+    }
+
+    /**
+     * description 设置网络请求前后回调函数
+     *
+     * @param callBack 网络回调类
+     */
+    public SingleHttpUtils setHttpCallBack(CallBackInterceptor.CallBack callBack) {
+        if (callBack != null) {
+            priorityInterceptors.add(new CallBackInterceptor(callBack));
+        }
         return this;
     }
 
@@ -227,8 +277,7 @@ public class SingleHttpUtils {
      * @param appKey 验签时前后端匹配的appKey，前后端一致即可
      */
     public SingleHttpUtils setSign(String appKey) {
-        this.sign = true;
-        this.appKey = appKey;
+        priorityInterceptors.add(new SignInterceptor(appKey));
         return this;
     }
 
@@ -240,9 +289,50 @@ public class SingleHttpUtils {
      * @param publicKey    rsa公钥
      */
     public SingleHttpUtils setEnAndDecryption(HttpUrl publicKeyUrl, String publicKey) {
-        this.encrypt = true;
-        this.publicKey = publicKey;
-        this.publicKeyUrl = publicKeyUrl;
+        EncryptConfig.publicKeyUrl = publicKeyUrl;
+        EncryptConfig.publicKey = publicKey;
+        priorityInterceptors.add(new EncryptionInterceptor());
+        networkInterceptors.add(new DecryptionInterceptor());
+        return this;
+    }
+
+    /**
+     * description 添加拦截器
+     *
+     * @param interceptor 带优先级的拦截器
+     */
+    public SingleHttpUtils addInterceptor(PriorityInterceptor interceptor) {
+        priorityInterceptors.add(interceptor);
+        return this;
+    }
+
+    /**
+     * description 添加拦截器
+     *
+     * @param interceptors 带优先级的拦截器
+     */
+    public SingleHttpUtils addInterceptors(List<PriorityInterceptor> interceptors) {
+        priorityInterceptors.addAll(interceptors);
+        return this;
+    }
+
+    /**
+     * description 添加网络拦截器
+     *
+     * @param interceptor 带优先级的拦截器
+     */
+    public SingleHttpUtils addNetworkInterceptor(PriorityInterceptor interceptor) {
+        networkInterceptors.add(interceptor);
+        return this;
+    }
+
+    /**
+     * description 添加网络拦截器
+     *
+     * @param interceptors 带优先级的拦截器
+     */
+    public SingleHttpUtils addNetworkInterceptors(List<PriorityInterceptor> interceptors) {
+        networkInterceptors.addAll(interceptors);
         return this;
     }
 
@@ -377,50 +467,16 @@ public class SingleHttpUtils {
             singleOkHttpBuilder.dns(dns);
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            singleOkHttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps, headersFunction));
-        } else {
-            singleOkHttpBuilder.addInterceptor(new HeaderInterceptor(headerMaps));
+        if (cache != null) {
+            singleOkHttpBuilder.cache(cache);
+        }
+        for (PriorityInterceptor priorityInterceptor : priorityInterceptors) {
+            singleOkHttpBuilder.addInterceptor(priorityInterceptor);
+        }
+        for (PriorityInterceptor priorityInterceptor : networkInterceptors) {
+            singleOkHttpBuilder.addNetworkInterceptor(priorityInterceptor);
         }
 
-        if (sign) {
-            singleOkHttpBuilder.addInterceptor(new SignInterceptor(appKey));
-        }
-        if (isCache) {
-            CacheInterceptor cacheInterceptor = new CacheInterceptor();
-            Cache cache;
-            if ((cachePath != null && !cachePath.isEmpty()) && cacheMaxSize > 0) {
-                cache = new Cache(new File(cachePath), cacheMaxSize);
-            } else {
-                cache = new Cache(new File(Environment.getExternalStorageDirectory().getPath() + "/RxHttpUtilsCache")
-                        , 1024 * 1024);
-            }
-            singleOkHttpBuilder.addInterceptor(cacheInterceptor)
-                    .addNetworkInterceptor(cacheInterceptor)
-                    .cache(cache);
-        }
-        if (isShowLog) {
-            HttpLoggingInterceptor loggingInterceptor;
-            if (logger == null) {
-                loggingInterceptor = new HttpLoggingInterceptor(message -> Log.i("HttpUtils", message));
-            } else {
-                loggingInterceptor = new HttpLoggingInterceptor(logger);
-            }
-            loggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-            singleOkHttpBuilder.addInterceptor(loggingInterceptor);
-        }
-
-        if (saveCookie) {
-            singleOkHttpBuilder
-                    .addInterceptor(new AddCookieInterceptor())
-                    .addInterceptor(new SaveCookieInterceptor());
-        }
-        if (encrypt) {
-            EncryptConfig.publicKey = publicKey;
-            EncryptConfig.publicKeyUrl = publicKeyUrl;
-            singleOkHttpBuilder.addInterceptor(new EncryptionInterceptor());
-            singleOkHttpBuilder.addNetworkInterceptor(new DecryptionInterceptor());
-        }
         singleOkHttpBuilder.readTimeout(readTimeout > 0 ? readTimeout : 10, TimeUnit.SECONDS);
 
         singleOkHttpBuilder.writeTimeout(writeTimeout > 0 ? writeTimeout : 10, TimeUnit.SECONDS);
@@ -430,7 +486,6 @@ public class SingleHttpUtils {
         if (sslParams != null) {
             singleOkHttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         }
-
         return singleOkHttpBuilder;
     }
 }
