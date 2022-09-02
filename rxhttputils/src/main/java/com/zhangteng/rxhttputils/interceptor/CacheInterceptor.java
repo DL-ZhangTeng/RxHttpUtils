@@ -5,12 +5,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import androidx.annotation.NonNull;
+
 import com.zhangteng.rxhttputils.http.HttpUtils;
 
 import java.io.IOException;
 
 import okhttp3.CacheControl;
-import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
@@ -18,7 +19,8 @@ import okhttp3.Response;
  * 缓存数据，如果无网络且有缓存有数据直接读取缓存数据，只针对get请求
  * Created by swing on 2018/4/24.
  */
-public class CacheInterceptor implements Interceptor, PriorityInterceptor {
+public class CacheInterceptor implements PriorityInterceptor {
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();

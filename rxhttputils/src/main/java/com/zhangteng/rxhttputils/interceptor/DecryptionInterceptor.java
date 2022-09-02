@@ -2,6 +2,8 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.zhangteng.rxhttputils.config.EncryptConfig;
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
@@ -12,7 +14,6 @@ import com.zhangteng.utils.SPUtilsKt;
 import java.io.IOException;
 
 import okhttp3.Headers;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
@@ -21,7 +22,8 @@ import okhttp3.ResponseBody;
  * 添加解密拦截器
  * Created by Swing on 2019/10/20.
  */
-public class DecryptionInterceptor implements Interceptor, PriorityInterceptor {
+public class DecryptionInterceptor implements PriorityInterceptor {
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Response response = chain.proceed(chain.request());

@@ -10,14 +10,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
  * Created by swing on 2018/4/24.
  */
-public class HeaderInterceptor implements Interceptor, PriorityInterceptor {
+public class HeaderInterceptor implements PriorityInterceptor {
     private Map<String, Object> headerMaps;
     private Function<Map<String, Object>, Map<String, Object>> headersFunction;
 

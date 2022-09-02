@@ -14,6 +14,7 @@ import com.zhangteng.rxhttputils.interceptor.CacheInterceptor;
 import com.zhangteng.rxhttputils.interceptor.DecryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.EncryptionInterceptor;
 import com.zhangteng.rxhttputils.interceptor.HeaderInterceptor;
+import com.zhangteng.rxhttputils.interceptor.PriorityInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SaveCookieInterceptor;
 import com.zhangteng.rxhttputils.interceptor.SignInterceptor;
 import com.zhangteng.rxhttputils.utils.RetrofitServiceProxyHandler;
@@ -27,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -80,6 +82,10 @@ public class GlobalHttpUtils {
      * description: Lru缓存
      */
     private LruCache<String, Object> mRetrofitServiceCache;
+    /**
+     * description: 拦截器集合,按照优先级从小到大排序new TreeSet<>((l, r) -> l.getPriority() < r.getPriority() ? 1 : 0)
+     */
+    private TreeSet<PriorityInterceptor> priorityInterceptors;
 
     private GlobalHttpUtils() {
         okhttpBuilder = new okhttp3.OkHttpClient.Builder();

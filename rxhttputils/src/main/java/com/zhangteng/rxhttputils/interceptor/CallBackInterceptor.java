@@ -13,7 +13,7 @@ import okhttp3.Response;
  * author: Swing
  * date: 2022/9/1
  */
-public class CallBackInterceptor implements Interceptor, PriorityInterceptor {
+public class CallBackInterceptor implements PriorityInterceptor {
     private final HttpHandler httpHandler;
 
     public CallBackInterceptor(HttpHandler httpHandler) {
@@ -36,7 +36,7 @@ public class CallBackInterceptor implements Interceptor, PriorityInterceptor {
 
     /**
      * description 晚于{@link CacheInterceptor} {@link HeaderInterceptor} {@link AddCookieInterceptor}执行
-     *             早于{@link SignInterceptor} {@link EncryptionInterceptor}执行
+     * 早于{@link SignInterceptor} {@link EncryptionInterceptor}执行
      */
     @Override
     public int getPriority() {

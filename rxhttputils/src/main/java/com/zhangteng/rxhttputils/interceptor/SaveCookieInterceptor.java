@@ -1,5 +1,9 @@
 package com.zhangteng.rxhttputils.interceptor;
 
+import static java.util.Calendar.getInstance;
+
+import androidx.annotation.NonNull;
+
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.utils.SPUtilsKt;
@@ -9,15 +13,13 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
 
-import okhttp3.Interceptor;
 import okhttp3.Response;
-
-import static java.util.Calendar.getInstance;
 
 /**
  * Created by swing on 2018/4/24.
  */
-public class SaveCookieInterceptor implements Interceptor, PriorityInterceptor {
+public class SaveCookieInterceptor implements PriorityInterceptor {
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Response originalResponse = chain.proceed(chain.request());

@@ -2,6 +2,8 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.zhangteng.rxhttputils.config.SPConfig;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.utils.SPUtilsKt;
@@ -9,14 +11,14 @@ import com.zhangteng.utils.SPUtilsKt;
 import java.io.IOException;
 import java.util.HashSet;
 
-import okhttp3.Interceptor;
 import okhttp3.Request;
 import okhttp3.Response;
 
 /**
  * Created by swing on 2018/4/24.
  */
-public class AddCookieInterceptor implements Interceptor, PriorityInterceptor {
+public class AddCookieInterceptor implements PriorityInterceptor {
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request.Builder builder = chain.request().newBuilder();

@@ -2,6 +2,8 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -21,7 +23,6 @@ import java.util.Objects;
 
 import okhttp3.FormBody;
 import okhttp3.Headers;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -33,7 +34,7 @@ import okio.Buffer;
  * 添加加密拦截器
  * Created by Swing on 2019/10/20.
  */
-public class EncryptionInterceptor implements Interceptor, PriorityInterceptor {
+public class EncryptionInterceptor implements PriorityInterceptor {
     public static final String METHOD_GET = "GET";
     public static final String METHOD_POST = "POST";
 
@@ -41,6 +42,7 @@ public class EncryptionInterceptor implements Interceptor, PriorityInterceptor {
 
     }
 
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         okhttp3.Request request = chain.request();

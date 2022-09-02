@@ -2,6 +2,8 @@ package com.zhangteng.rxhttputils.interceptor;
 
 import android.text.TextUtils;
 
+import androidx.annotation.NonNull;
+
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,7 +18,6 @@ import java.util.TreeMap;
 
 import okhttp3.FormBody;
 import okhttp3.HttpUrl;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -27,15 +28,16 @@ import okio.Buffer;
  * 添加签名拦截器
  * Created by Swing on 2019/10/20.
  */
-public class SignInterceptor implements Interceptor, PriorityInterceptor {
+public class SignInterceptor implements PriorityInterceptor {
     private static final String METHOD_GET = "GET";
     private static final String METHOD_POST = "POST";
-    private String appKey;
+    private final String appKey;
 
     public SignInterceptor(String appKey) {
         this.appKey = appKey;
     }
 
+    @NonNull
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
@@ -56,7 +58,7 @@ public class SignInterceptor implements Interceptor, PriorityInterceptor {
                 for (int i = 0; i < formBody.size(); i++) {
                     params.put(formBody.encodedName(i), formBody.encodedValue(i));
                 }
-            } else if (request.body() instanceof RequestBody) {
+            } else {
                 RequestBody requestBody = request.body();
                 Buffer buffer = new Buffer();
                 requestBody.writeTo(buffer);
