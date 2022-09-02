@@ -16,7 +16,7 @@ import okhttp3.Response;
 /**
  * Created by swing on 2018/4/24.
  */
-public class AddCookieInterceptor implements Interceptor {
+public class AddCookieInterceptor implements Interceptor, PriorityInterceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request.Builder builder = chain.request().newBuilder();
@@ -28,5 +28,10 @@ public class AddCookieInterceptor implements Interceptor {
             }
         }
         return chain.proceed(builder.build());
+    }
+
+    @Override
+    public int getPriority() {
+        return 2;
     }
 }

@@ -15,9 +15,10 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 /**
+ * 缓存数据，如果无网络且有缓存有数据直接读取缓存数据，只针对get请求
  * Created by swing on 2018/4/24.
  */
-public class CacheInterceptor implements Interceptor {
+public class CacheInterceptor implements Interceptor, PriorityInterceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Request request = chain.request();
@@ -43,6 +44,11 @@ public class CacheInterceptor implements Interceptor {
         }
     }
 
+    @Override
+    public int getPriority() {
+        return 0;
+    }
+
     public static boolean isNetworkConnected() {
         Context context = HttpUtils.getInstance().getContext();
         if (context != null) {
@@ -52,6 +58,6 @@ public class CacheInterceptor implements Interceptor {
                 return mNetworkInfo.isAvailable();
             }
         }
-        return false;
+        return true;
     }
 }

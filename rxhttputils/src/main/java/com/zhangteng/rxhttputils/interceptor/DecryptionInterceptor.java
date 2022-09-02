@@ -18,10 +18,10 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 
 /**
- * 添加加解密拦截器
+ * 添加解密拦截器
  * Created by Swing on 2019/10/20.
  */
-public class DecryptionInterceptor implements Interceptor {
+public class DecryptionInterceptor implements Interceptor, PriorityInterceptor {
     @Override
     public Response intercept(Chain chain) throws IOException {
         Response response = chain.proceed(chain.request());
@@ -50,6 +50,13 @@ public class DecryptionInterceptor implements Interceptor {
         return response;
     }
 
+    /**
+     * description 保证解密时优先执行且避免特殊情况需要早于解密之前执行的NetworkInterceptor因此返回Integer.MAX_VALUE - 1
+     */
+    @Override
+    public int getPriority() {
+        return Integer.MAX_VALUE - 1;
+    }
 
     /**
      * 获取解密失败响应
