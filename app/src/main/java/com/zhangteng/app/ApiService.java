@@ -12,7 +12,7 @@ public interface ApiService {
     /**
      * 密码登录
      */
-    @POST("app/login/pwd")
+    @POST("/")
     @FormUrlEncoded
     Observable<BaseResponse<LoginBean>> loginPwd(@Field("username") String phone, @Field("password") String pwd);
 }

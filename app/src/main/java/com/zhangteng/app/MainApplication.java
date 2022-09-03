@@ -4,16 +4,26 @@ import android.app.Application;
 
 import androidx.annotation.NonNull;
 
+import com.google.gson.Gson;
 import com.zhangteng.rxhttputils.http.HttpUtils;
 import com.zhangteng.rxhttputils.interceptor.CallBackInterceptor;
+import com.zhangteng.utils.LogUtilsKt;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import okhttp3.Interceptor;
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okio.Buffer;
+import okio.BufferedSource;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
@@ -34,7 +44,7 @@ public class MainApplication extends Application {
         HttpUtils.getInstance()
                 .ConfigGlobalHttpUtils()
                 //全局的BaseUrl
-                .setBaseUrl("https://**/")
+                .setBaseUrl("https://www.baidu.com")
                 //设置CallAdapter.Factory,默认RxJavaCallAdapterFactory.create()
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 //设置Converter.Factory,默认GsonConverterFactory.create()
@@ -83,6 +93,20 @@ public class MainApplication extends Application {
                     @Override
                     public Response onHttpResponse(@NonNull Interceptor.Chain chain, @NonNull Response response) {
                         //这里可以先客户端一步拿到每一次 Http 请求的结果
+                        ResponseBody body = response.newBuilder().build().body();
+                        BufferedSource source = body.source();
+                        try {
+                            source.request(Long.MAX_VALUE); // Buffer the entire body.
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        Buffer buffer = source.getBuffer();
+                        Charset charset = StandardCharsets.UTF_8;
+                        MediaType contentType = body.contentType();
+                        if (contentType != null) {
+                            charset = contentType.charset(charset);
+                        }
+                        LogUtilsKt.e(buffer.readString(charset));
                         return response;
                     }
 
@@ -90,6 +114,15 @@ public class MainApplication extends Application {
                     @Override
                     public Request onHttpRequest(@NonNull Interceptor.Chain chain, @NonNull Request request) {
                         //这里可以在请求服务器之前拿到
+                        LogUtilsKt.e(new Gson().toJson(request.headers()));
+                        RequestBody body = request.body();
+                        if (body != null) {
+                            try {
+                                LogUtilsKt.e(String.valueOf(body.contentLength()));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                         return request;
                     }
                 })

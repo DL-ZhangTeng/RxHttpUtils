@@ -11,7 +11,7 @@ allprojects {
     }
 }
 
-implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.4.0'
+implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.5.0'
     //库所使用的三方
     implementation 'androidx.lifecycle:lifecycle-common:2.4.0'
     implementation 'androidx.lifecycle:lifecycle-runtime:2.4.0'
@@ -23,7 +23,7 @@ implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.4.0'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
     //noinspection GradleDynamicVersion
-    implementation 'com.github.DL-ZhangTeng.BaseLibrary:utils:1.4.+'
+    implementation 'com.github.DL-ZhangTeng:Utils:1.0.+'
 ```
 
 ## 属性
@@ -36,9 +36,14 @@ setDns| 自定义域名解析
 setCache| 开启缓存策略
 addHeader| 全局的单个请求头信息
 setHeaders| 全局的请求头信息，设置静态请求头：更新请求头时不需要重新设置，对Map元素进行移除添加即可；设置动态请求头：如token等需要根据登录状态实时变化的请求头参数，最小支持api 24
+setHttpCallBack| 设置网络请求前后回调函数 onHttpResponse:可以先客户端一步拿到每一次Http请求的结果 onHttpRequest:可以在请求服务器之前拿到
 setSign| 全局验签，appKey与后端匹配即可，具体规则参考：https://blog.csdn.net/duoluo9/article/details/105214983
 setEnAndDecryption| 全局加解密(AES+RSA)。1、公钥请求路径HttpUrl.get(BuildConfig.HOST + "/getPublicKey")；2、公钥响应结果{"result": {"publicKey": ""},"message": "查询成功!","status": 100}
 setCookie|全局持久话cookie,保存本地每次都会携带在header中
+addInterceptor|添加拦截器(继承PriorityInterceptor重写getPriority方法自定义顺序，自定义拦截器Priority必须>=10)
+addInterceptors|添加拦截器(继承PriorityInterceptor重写getPriority方法自定义顺序，自定义拦截器Priority必须>=10)
+addNetworkInterceptor|添加网络拦截器(继承PriorityInterceptor重写getPriority方法自定义顺序，自定义拦截器Priority必须>=10)
+addNetworkInterceptors|添加网络拦截器(继承PriorityInterceptor重写getPriority方法自定义顺序，自定义拦截器Priority必须>=10)
 setSslSocketFactory| 全局ssl证书认证。1、信任所有证书,不安全有风险，setSslSocketFactory()；2、使用预埋证书，校验服务端证书（自签名证书），setSslSocketFactory(getAssets().open("your.cer"))；3、使用bks证书和密码管理客户端证书（双向认证），使用预埋证书，校验服务端证书（自签名证书），setSslSocketFactory(getAssets().open("your.bks"), "123456", getAssets().open("your.cer"))
 setReadTimeOut|全局超时配置
 setWriteTimeOut|全局超时配置
@@ -102,6 +107,44 @@ setLog| 全局是否打开请求log日志
                         headers.remove("Authorization");
                     }
                     return headers;
+                })
+                .setHttpCallBack(new CallBackInterceptor.CallBack() {
+                    @NonNull
+                    @Override
+                    public Response onHttpResponse(@NonNull Interceptor.Chain chain, @NonNull Response response) {
+                        //这里可以先客户端一步拿到每一次 Http 请求的结果
+                        ResponseBody body = response.newBuilder().build().body();
+                        BufferedSource source = body.source();
+                        try {
+                            source.request(Long.MAX_VALUE); // Buffer the entire body.
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        Buffer buffer = source.getBuffer();
+                        Charset charset = StandardCharsets.UTF_8;
+                        MediaType contentType = body.contentType();
+                        if (contentType != null) {
+                            charset = contentType.charset(charset);
+                        }
+                        LogUtilsKt.e(buffer.readString(charset));
+                        return response;
+                    }
+
+                    @NonNull
+                    @Override
+                    public Request onHttpRequest(@NonNull Interceptor.Chain chain, @NonNull Request request) {
+                        //这里可以在请求服务器之前拿到
+                        LogUtilsKt.e(new Gson().toJson(request.headers()));
+                        RequestBody body = request.body();
+                        if (body != null) {
+                            try {
+                                LogUtilsKt.e(String.valueOf(body.contentLength()));
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        return request;
+                    }
                 })
                 //全局持久话cookie,保存本地每次都会携带在header中
                 .setCookie(false)
@@ -187,6 +230,7 @@ setLog| 全局是否打开请求log日志
 ## 历史版本
 版本| 更新| 更新时间
 -------- | ----- | -----
+v1.5.0|增加网络请求前后回调拦截器，拦截器使用指定顺序执行，支持添加自定义拦截器|2022/9/3 at 1:02
 v1.4.0|使用rxJava时向外抛出IException，便于调试|2022/8/22 at 10:46
 v1.3.0|增加addConverterFactory&addCallAdapterFactory&addHeader|2022/7/9 at 13:07
 v1.2.2|使用util库中的IException解决循环依赖&异常处理放入子类实现，方便调试异常|2022/7/4 at 17:50

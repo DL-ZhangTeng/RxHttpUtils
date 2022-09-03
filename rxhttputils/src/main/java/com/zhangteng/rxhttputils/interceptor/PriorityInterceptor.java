@@ -9,7 +9,7 @@ import okhttp3.Interceptor;
  */
 public interface PriorityInterceptor extends Interceptor {
     /**
-     * description 自定义拦截器tPriority必须>=10
+     * description 自定义拦截器Priority必须>=10
      * Interceptor添加顺序: {@link CacheInterceptor} {@link HeaderInterceptor} {@link AddCookieInterceptor} {@link CallBackInterceptor} {@link SignInterceptor} {@link HttpLoggingProxyInterceptor} {@link EncryptionInterceptor}
      * NetworkInterceptor添加顺序: {@link CacheInterceptor} {@link SaveCookieInterceptor} {@link DecryptionInterceptor}
      */
