@@ -58,8 +58,8 @@ public class SingleHttpUtils {
 
     private SSLUtils.SSLParams sslParams;
 
-    private final List<Converter.Factory> converterFactories = new ArrayList<>();
-    private final List<CallAdapter.Factory> adapterFactories = new ArrayList<>();
+    private final List<Converter.Factory> converterFactories;
+    private final List<CallAdapter.Factory> adapterFactories;
 
     /**
      * description: 拦截器集合,按照优先级从小到大排序
@@ -71,6 +71,8 @@ public class SingleHttpUtils {
     private final TreeSet<PriorityInterceptor> networkInterceptors;
 
     private SingleHttpUtils() {
+        converterFactories = new ArrayList<>();
+        adapterFactories = new ArrayList<>();
         priorityInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
         networkInterceptors = new TreeSet<>((o, r) -> Integer.compare(o.getPriority(), r.getPriority()));
     }
@@ -451,6 +453,8 @@ public class SingleHttpUtils {
 
         singleRetrofitBuilder.client(getSingleOkHttpBuilder().build());
 
+        clearParams();
+
         return singleRetrofitBuilder;
     }
 
@@ -487,5 +491,24 @@ public class SingleHttpUtils {
             singleOkHttpBuilder.sslSocketFactory(Objects.requireNonNull(sslParams.getSSLSocketFactory()), Objects.requireNonNull(sslParams.getTrustManager()));
         }
         return singleOkHttpBuilder;
+    }
+
+    private void clearParams() {
+        baseUrl = null;
+        dns = null;
+
+        cache = null;
+
+        readTimeout = 0;
+        writeTimeout = 0;
+        connectTimeout = 0;
+
+        sslParams = null;
+
+        converterFactories.clear();
+        adapterFactories.clear();
+
+        priorityInterceptors.clear();
+        networkInterceptors.clear();
     }
 }
