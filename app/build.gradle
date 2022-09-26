@@ -34,8 +34,8 @@ dependencies {
     implementation 'com.aliyun.ams:alicloud-android-httpdns:2.2.2'
 
     implementation project(path: ':rxhttputils')
-    implementation 'androidx.lifecycle:lifecycle-common:2.4.0'
-    implementation 'androidx.lifecycle:lifecycle-runtime:2.4.0'
+    implementation 'androidx.lifecycle:lifecycle-common:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.4.1'
     implementation 'io.reactivex.rxjava2:rxjava:2.2.21'
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -44,5 +44,5 @@ dependencies {
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
     //noinspection GradleDynamicVersion
-    implementation 'com.github.DL-ZhangTeng:Utils:1.0.+'
+    implementation 'com.github.DL-ZhangTeng:Utils:2.0.+'
 }
