@@ -22,8 +22,7 @@ implementation 'com.github.DL-ZhangTeng:RxHttpUtils:1.5.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.8.1'
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.9.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.2'
-    //noinspection GradleDynamicVersion
-    implementation 'com.github.DL-ZhangTeng:Utils:1.0.+'
+    implementation 'com.github.DL-ZhangTeng:Utils:2.0.1'
 ```
 
 ## 属性
